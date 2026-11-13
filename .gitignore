@@ -1,0 +1,25 @@
+# Dependencias y compilación (con sufijo .nosync para iCloud)
+node_modules
+node_modules.nosync
+.next
+.next.nosync
+next-env.d.ts
+*.tsbuildinfo
+
+# Datos locales: base de datos, cómics importados, recortes
+data.nosync
+test-data.nosync
+
+# Resultados de pruebas
+test-results
+playwright-report
+
+# Cómics de prueba generados (se recrean con `npm run fixtures`)
+fixtures/*.cbr
+fixtures/*.cbz
+
+# Configuración local
+.env
+.env.local
+.claude
+.DS_Store

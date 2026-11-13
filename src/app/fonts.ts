@@ -1,0 +1,19 @@
+/* Fuentes locales (sin servicios externos). Se usan en la interfaz, el editor y el PDF. */
+import "@fontsource-variable/inter";
+import "@fontsource/atkinson-hyperlegible/400.css";
+import "@fontsource/atkinson-hyperlegible/700.css";
+import "@fontsource/atkinson-hyperlegible/400-italic.css";
+import "@fontsource/atkinson-hyperlegible/700-italic.css";
+import "@fontsource-variable/merriweather";
+import "@fontsource-variable/merriweather/standard-italic.css";
+import "@fontsource-variable/lora";
+import "@fontsource-variable/lora/wght-italic.css";
+import "@fontsource-variable/roboto-slab";
+import "@fontsource/comic-neue/400.css";
+import "@fontsource/comic-neue/700.css";
+import "@fontsource/comic-neue/400-italic.css";
+import "@fontsource/comic-neue/700-italic.css";
+import "@fontsource/patrick-hand/400.css";
+import "@fontsource/bangers/400.css";
+import "@fontsource/opendyslexic/400.css";
+import "@fontsource/opendyslexic/700.css";

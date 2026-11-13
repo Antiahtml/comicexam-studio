@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Cómic (o colección de imágenes) importado en la biblioteca.
+model Comic {
+  id           String      @id @default(cuid())
+  title        String
+  originalName String
+  /// rar | zip | images | bundle
+  format       String
+  /// processing | ready | error
+  status       String      @default("processing")
+  progress     Int         @default(0)
+  stage        String      @default("")
+  error        String?
+  sizeBytes    Int         @default(0)
+  pageCount    Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  pages        ComicPage[]
+  selections   Selection[]
+}
+
+/// Página individual de un cómic. Las imágenes originales se conservan intactas.
+model ComicPage {
+  id         String      @id @default(cuid())
+  comicId    String
+  comic      Comic       @relation(fields: [comicId], references: [id], onDelete: Cascade)
+  index      Int
+  /// Nombre dentro del archivo (solo informativo; nunca se usa como ruta)
+  entryName  String
+  /// Ruta relativa a DATA_DIR de la imagen original
+  path       String
+  thumbPath  String
+  previewPath String
+  mime       String
+  width      Int
+  height     Int
+  bytes      Int
+  selections Selection[]
+
+  @@unique([comicId, index])
+}
+
+/// Viñeta o región seleccionada en una página, en coordenadas normalizadas (0..1).
+model Selection {
+  id        String    @id @default(cuid())
+  comicId   String
+  comic     Comic     @relation(fields: [comicId], references: [id], onDelete: Cascade)
+  pageId    String
+  page      ComicPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  label     String    @default("")
+  x         Float
+  y         Float
+  w         Float
+  h         Float
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+/// Proyecto de examen. El documento (páginas y elementos) se guarda como JSON validado.
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  document  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,14 @@
+services:
+  comicexam:
+    build: .
+    image: comicexam-studio
+    ports:
+      - "3000:3000"
+    volumes:
+      - comicexam-data:/data
+    environment:
+      MAX_UPLOAD_MB: "1024"
+    restart: unless-stopped
+
+volumes:
+  comicexam-data:
