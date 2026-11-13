@@ -55,19 +55,42 @@ export function LibraryView() {
   const [newTitle, setNewTitle] = useState("");
 
   const remove = async (c: ComicSummary) => {
+    let usedBy: { id: string; name: string }[] = [];
+    try {
+      usedBy = (await api<{ usedBy: { id: string; name: string }[] }>(`/api/comics/${c.id}/usage`)).usedBy;
+    } catch {
+      /* si falla la consulta, el servidor vuelve a comprobarlo al borrar */
+    }
     const ok = await confirm({
       title: `¿Eliminar «${c.title}»?`,
-      description: "Se borrarán sus páginas y viñetas guardadas. Los exámenes que las usen mostrarán una imagen no disponible.",
-      confirmLabel: "Eliminar",
+      description:
+        usedBy.length > 0 ? (
+          <div className="space-y-2" data-testid="comic-usage-warning">
+            <p className="font-medium text-destructive">
+              {usedBy.length === 1 ? "Lo usa 1 examen" : `Lo usan ${usedBy.length} exámenes`}: sus imágenes dejarán de verse en el papel.
+            </p>
+            <ul className="list-disc space-y-0.5 pl-5 text-foreground">
+              {usedBy.slice(0, 6).map((p) => (
+                <li key={p.id}>{p.name}</li>
+              ))}
+              {usedBy.length > 6 && <li>y {usedBy.length - 6} más…</li>}
+            </ul>
+            <p>También se borrarán sus páginas y viñetas guardadas. No se puede deshacer.</p>
+          </div>
+        ) : (
+          "Se borrarán sus páginas y viñetas guardadas. Ningún examen lo usa. No se puede deshacer."
+        ),
+      confirmLabel: usedBy.length > 0 ? "Eliminar igualmente" : "Eliminar",
       destructive: true,
     });
     if (!ok) return;
     try {
-      await api(`/api/comics/${c.id}`, { method: "DELETE" });
+      await api(`/api/comics/${c.id}${usedBy.length > 0 ? "?force=1" : ""}`, { method: "DELETE" });
       toast.success("Cómic eliminado");
       void reload();
     } catch (err) {
       toast.error((err as Error).message);
+      void reload();
     }
   };
 

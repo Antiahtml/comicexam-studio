@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type Ref } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -27,6 +27,7 @@ import { Badge, EmptyState, Separator } from "@/components/ui/misc";
 import { Tip } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CropPreview, RegionSelector, type Region } from "./region-selector";
+import { useChoice } from "@/components/ui/confirm";
 import { api, cn } from "@/lib/utils";
 import { pageImageUrl } from "@/lib/images/urls";
 import { FULL_RECT, type NormRect } from "@/lib/regions/coords";
@@ -35,6 +36,18 @@ import type { ImageSource } from "@/lib/document/types";
 
 export type InsertLayout = "auto" | "row" | "perPage";
 
+/** Control del visor desde fuera (p. ej. el diálogo del editor, para no perder borradores al cerrarlo). */
+export interface ComicViewerHandle {
+  /** Número de viñetas dibujadas que aún no se han guardado. */
+  draftCount: () => number;
+  /** Guarda todos los borradores en la biblioteca. Devuelve cuántos se guardaron. */
+  saveAllDrafts: () => Promise<number>;
+  /** Si hay una viñeta seleccionada, la deselecciona y devuelve true (Esc no debe cerrar el visor). */
+  consumeEscape: () => boolean;
+  /** Pregunta qué hacer con los borradores. Devuelve false si el usuario decide quedarse. */
+  confirmLeave: () => Promise<boolean>;
+}
+
 const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4];
 
 export function ComicViewer({
@@ -42,13 +55,16 @@ export function ComicViewer({
   mode,
   initialPage = 0,
   onInsert,
+  ref,
 }: {
   comicId: string;
   mode: "library" | "editor";
   initialPage?: number;
   onInsert?: (sources: ImageSource[], layout: InsertLayout) => void;
+  ref?: Ref<ComicViewerHandle>;
 }) {
   const router = useRouter();
+  const choose = useChoice();
   const [comic, setComic] = useState<ComicDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageIdx, setPageIdx] = useState(initialPage);
@@ -167,10 +183,30 @@ export function ComicViewer({
     if (key.startsWith("d:")) {
       setDrafts((d) => ({ ...d, [page.id]: (d[page.id] ?? []).filter((r) => r.key !== key) }));
     } else {
+      const removed = saved.find((x) => x.id === key.slice(2));
       try {
         await api(`/api/selections/${key.slice(2)}`, { method: "DELETE" });
         setSaved((ss) => ss.filter((x) => x.id !== key.slice(2)));
-        toast.success("Viñeta eliminada de la biblioteca");
+        // Se puede recuperar durante unos segundos (se vuelve a crear con la misma región y nombre).
+        toast.success("Viñeta eliminada de la biblioteca", {
+          duration: 8000,
+          action: removed
+            ? {
+                label: "Deshacer",
+                onClick: async () => {
+                  try {
+                    const restored = await api<SavedSelection>("/api/selections", {
+                      method: "POST",
+                      body: JSON.stringify({ pageId: removed.pageId, rect: removed.rect, label: removed.label }),
+                    });
+                    setSaved((ss) => [...ss, restored]);
+                  } catch (err) {
+                    toast.error("No se ha podido recuperar la viñeta", { description: (err as Error).message });
+                  }
+                },
+              }
+            : undefined,
+        });
       } catch (err) {
         toast.error((err as Error).message);
         return;
@@ -178,6 +214,86 @@ export function ComicViewer({
     }
     if (activeKey === key) setActiveKey(null);
   };
+
+  /* ----------------------------- Borradores sin guardar ----------------------------- */
+
+  const draftCount = Object.values(drafts).reduce((n, list) => n + list.length, 0);
+
+  const saveAllDrafts = useCallback(async (): Promise<number> => {
+    let n = 0;
+    for (const [pageId, list] of Object.entries(drafts)) {
+      for (const r of list) {
+        const sel = await api<SavedSelection>("/api/selections", { method: "POST", body: JSON.stringify({ pageId, rect: r.rect, label: r.label }) });
+        setSaved((ss) => [...ss, sel]);
+        n++;
+      }
+    }
+    setDrafts({});
+    setCheckedRegions(new Set());
+    setActiveKey((k) => (k?.startsWith("d:") ? null : k));
+    return n;
+  }, [drafts]);
+
+  /** Pregunta qué hacer con los borradores antes de salir. Devuelve false si el usuario se queda. */
+  const confirmLeave = useCallback(async (): Promise<boolean> => {
+    if (draftCount === 0) return true;
+    const choice = await choose({
+      title: draftCount === 1 ? "Tienes 1 viñeta sin guardar" : `Tienes ${draftCount} viñetas sin guardar`,
+      description: "Si sales sin guardarlas, se perderán. Las viñetas guardadas aparecen en la pestaña «Viñetas» del editor.",
+      options: [
+        { value: "save", label: "Guardar y salir" },
+        { value: "discard", label: "Salir sin guardar", variant: "outline" },
+      ],
+      cancelLabel: "Seguir seleccionando",
+    });
+    if (choice === null) return false;
+    if (choice === "save") {
+      try {
+        const n = await saveAllDrafts();
+        toast.success(n === 1 ? "Viñeta guardada en la biblioteca" : `${n} viñetas guardadas en la biblioteca`);
+      } catch (err) {
+        toast.error("No se han podido guardar las viñetas", { description: (err as Error).message });
+        return false;
+      }
+    }
+    return true;
+  }, [draftCount, choose, saveAllDrafts]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      draftCount: () => draftCount,
+      saveAllDrafts,
+      consumeEscape: () => {
+        if (!activeKey) return false;
+        setActiveKey(null);
+        return true;
+      },
+      confirmLeave,
+    }),
+    [draftCount, saveAllDrafts, activeKey, confirmLeave],
+  );
+
+  // En la página del visor: proteger los enlaces internos y el cierre de la pestaña.
+  useEffect(() => {
+    if (mode !== "library" || draftCount === 0) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement).closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || a.target === "_blank" || a.hasAttribute("download") || e.metaKey || e.ctrlKey) return;
+      const url = new URL(a.href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      e.preventDefault();
+      e.stopPropagation();
+      void confirmLeave().then((ok) => ok && router.push(url.pathname + url.search));
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("click", onClick, true);
+    };
+  }, [mode, draftCount, confirmLeave, router]);
 
   const renameRegion = (key: string, label: string) => {
     if (!page) return;
@@ -623,6 +739,27 @@ export function ComicViewer({
               {regions.filter((r) => r.saved).length} guardadas · {regions.filter((r) => !r.saved).length} sin guardar
             </p>
           </div>
+          {draftCount > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              data-testid="save-all-drafts"
+              onClick={async () => {
+                try {
+                  setBusy(true);
+                  const n = await saveAllDrafts();
+                  toast.success(n === 1 ? "Viñeta guardada en la biblioteca" : `${n} viñetas guardadas en la biblioteca`);
+                } catch (err) {
+                  toast.error("No se han podido guardar las viñetas", { description: (err as Error).message });
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              <BookmarkPlus /> Guardar {draftCount > 1 ? `todas (${draftCount})` : "borrador"}
+            </Button>
+          )}
         </div>
         <div className="thin-scroll flex-1 space-y-3 overflow-y-auto p-3">
           {regions.length === 0 ? (

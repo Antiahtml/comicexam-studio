@@ -24,6 +24,10 @@ export interface EditorState {
 
   selectedIds: string[];
   activePageId: string;
+  /** Momento en que el usuario eligió la hoja activa explícitamente (clic, añadir hoja…). */
+  activeSetAt: number;
+  /** Último contenido insertado: el lienzo se desplaza hasta él y lo resalta. */
+  lastInserted: { ids: string[]; nonce: number; newPages: number; firstNewPage: number | null } | null;
   editingId: string | null;
   zoom: number;
   showGuides: boolean;
@@ -50,6 +54,8 @@ export interface EditorState {
 
   select: (ids: string[], mode?: "replace" | "toggle" | "add") => void;
   setActivePage: (id: string) => void;
+  /** Desplaza la vista hasta unos elementos y los resalta. */
+  reveal: (ids: string[]) => void;
   setEditing: (id: string | null) => void;
   setZoom: (z: number) => void;
   setLeftTab: (t: LeftTab) => void;
@@ -72,6 +78,8 @@ export interface EditorState {
   align: (kind: AlignKind) => void;
   distribute: (axis: "h" | "v") => void;
   matchWidth: () => void;
+  /** Recoloca (y si hace falta reduce) un elemento para que quede dentro de los márgenes. */
+  fitInsideMargins: (id: string) => void;
 
   addPage: (afterIndex?: number) => void;
   duplicatePage: (pageId: string) => void;
@@ -83,6 +91,16 @@ export interface EditorState {
 }
 
 let clipboard: ExamElement[] = [];
+
+/**
+ * El lienzo registra aquí cómo saber qué hoja está viendo el usuario. Así, lo que se inserta
+ * desde los paneles va a la hoja visible y no a una que quedó activa fuera de la pantalla.
+ */
+let preferredPageResolver: (() => string | null) | null = null;
+export function setPreferredPageResolver(fn: (() => string | null) | null) {
+  preferredPageResolver = fn;
+}
+let insertNonce = 0;
 /** Agrupa en un solo paso de historial los cambios rápidos sobre el mismo campo (p. ej. al teclear). */
 let lastCoalesce: { key: string; time: number } | null = null;
 
@@ -137,8 +155,17 @@ export const useEditor = create<EditorState>()((set, get) => {
     return out;
   };
 
-  const targetPage = (doc: ExamDocument, pageId?: string) =>
-    doc.pages.find((p) => p.id === (pageId ?? get().activePageId)) ?? doc.pages[doc.pages.length - 1];
+  const targetPage = (doc: ExamDocument, pageId?: string) => {
+    const id = pageId ?? preferredPageResolver?.() ?? get().activePageId;
+    return doc.pages.find((p) => p.id === id) ?? doc.pages.find((p) => p.id === get().activePageId) ?? doc.pages[doc.pages.length - 1];
+  };
+
+  /** Registra lo insertado para que el lienzo lo muestre, indicando si se crearon hojas. */
+  const announce = (ids: string[], pagesBefore: string[]) => {
+    const pages = get().doc.pages;
+    const created = pages.map((p, i) => ({ p, i })).filter(({ p }) => !pagesBefore.includes(p.id));
+    set({ lastInserted: { ids, nonce: ++insertNonce, newPages: created.length, firstNewPage: created[0]?.i ?? null } });
+  };
 
   return {
     projectId: "",
@@ -151,6 +178,8 @@ export const useEditor = create<EditorState>()((set, get) => {
     lastSavedAt: null,
     selectedIds: [],
     activePageId: "empty",
+    activeSetAt: 0,
+    lastInserted: null,
     editingId: null,
     zoom: 1,
     showGuides: true,
@@ -173,6 +202,8 @@ export const useEditor = create<EditorState>()((set, get) => {
         lastSavedAt: Date.now(),
         selectedIds: [],
         activePageId: document.pages[0]?.id ?? "",
+        activeSetAt: 0,
+        lastInserted: null,
         editingId: null,
         past: [],
         future: [],
@@ -226,9 +257,10 @@ export const useEditor = create<EditorState>()((set, get) => {
       if (mode === "toggle") next = ids.reduce((acc, id) => (acc.includes(id) ? acc.filter((x) => x !== id) : [...acc, id]), cur);
       if (mode === "add") next = [...new Set([...cur, ...ids])];
       const found = next.length ? findElement(get().doc, next[next.length - 1]) : null;
-      set({ selectedIds: next, editingId: null, ...(found ? { activePageId: found.page.id } : {}) });
+      set({ selectedIds: next, editingId: null, ...(found ? { activePageId: found.page.id, activeSetAt: Date.now() } : {}) });
     },
-    setActivePage: (id) => set({ activePageId: id }),
+    setActivePage: (id) => set({ activePageId: id, activeSetAt: Date.now() }),
+    reveal: (ids) => set({ lastInserted: { ids, nonce: ++insertNonce, newPages: 0, firstNewPage: null } }),
     setEditing: (id) => set({ editingId: id }),
     setZoom: (z) => set({ zoom: Math.min(3, Math.max(0.25, Math.round(z * 100) / 100)) }),
     setLeftTab: (t) => set({ leftTab: t }),
@@ -237,21 +269,30 @@ export const useEditor = create<EditorState>()((set, get) => {
     setGuides: (g) => set({ guides: g }),
 
     addElement: (el, opts) => {
+      const pagesBefore = get().doc.pages.map((p) => p.id);
       commit((doc) => {
-        const page = targetPage(doc, opts?.pageId);
+        let page = targetPage(doc, opts?.pageId);
         let at = opts?.at;
         if (at && opts?.center) at = { x: at.x - el.w / 2, y: at.y - el.h / 2 };
+        // Si no cabe debajo del contenido, va a una hoja nueva (nunca encima de lo que hay).
+        if (!at && page.elements.length > 0 && !findInsertPosition(page, doc.settings, el.w, el.h).fits) {
+          const np = createPage();
+          doc.pages.splice(doc.pages.indexOf(page) + 1, 0, np);
+          page = np;
+        }
         placeElement(el, page, doc.settings, at);
         page.elements.push(el);
       });
       const found = findElement(get().doc, el.id);
-      set({ selectedIds: [el.id], activePageId: found?.page.id ?? get().activePageId });
+      set({ selectedIds: [el.id], activePageId: found?.page.id ?? get().activePageId, activeSetAt: Date.now() });
+      announce([el.id], pagesBefore);
     },
 
     insertImages: (sources, layout, opts) => {
       if (!sources.length) return;
       const ids: string[] = [];
       let lastPageId = get().activePageId;
+      const pagesBefore = get().doc.pages.map((p) => p.id);
       commit((doc) => {
         const area = printableArea(doc.settings);
         let page = targetPage(doc, opts?.pageId);
@@ -317,7 +358,8 @@ export const useEditor = create<EditorState>()((set, get) => {
         }
         lastPageId = page.id;
       });
-      set({ selectedIds: ids, activePageId: lastPageId });
+      set({ selectedIds: ids, activePageId: lastPageId, activeSetAt: Date.now() });
+      announce(ids, pagesBefore);
     },
 
     updateElement: (id, patch, coalesce) =>
@@ -482,13 +524,32 @@ export const useEditor = create<EditorState>()((set, get) => {
       });
     },
 
+    fitInsideMargins: (id) =>
+      commit((doc) => {
+        const f = findElement(doc, id);
+        if (!f) return;
+        const e = f.el;
+        const area = printableArea(doc.settings);
+        const ratio = e.h / e.w;
+        if (e.w > area.w) {
+          e.w = roundMm(area.w);
+          if (e.type === "image" && e.lockAspect) e.h = roundMm(e.w * ratio);
+        }
+        if (e.h > area.h) {
+          e.h = roundMm(area.h);
+          if (e.type === "image" && e.lockAspect) e.w = roundMm(e.h / ratio);
+        }
+        e.x = roundMm(Math.min(Math.max(e.x, area.x), area.x + area.w - e.w));
+        e.y = roundMm(Math.min(Math.max(e.y, area.y), area.y + area.h - e.h));
+      }),
+
     addPage: (afterIndex) => {
       const page = createPage();
       commit((doc) => {
         const idx = afterIndex ?? doc.pages.findIndex((p) => p.id === get().activePageId);
         doc.pages.splice((idx === -1 ? doc.pages.length - 1 : idx) + 1, 0, page);
       });
-      set({ activePageId: page.id, selectedIds: [] });
+      set({ activePageId: page.id, activeSetAt: Date.now(), selectedIds: [] });
       return;
     },
     duplicatePage: (pageId) => {
@@ -500,7 +561,7 @@ export const useEditor = create<EditorState>()((set, get) => {
         newId = copy.id;
         doc.pages.splice(idx + 1, 0, copy);
       });
-      if (newId) set({ activePageId: newId, selectedIds: [] });
+      if (newId) set({ activePageId: newId, activeSetAt: Date.now(), selectedIds: [] });
     },
     deletePage: (pageId) => {
       const { doc } = get();

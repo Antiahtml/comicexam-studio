@@ -7,7 +7,7 @@ import { config } from "@/lib/config";
 import { dataPath } from "@/lib/storage";
 import { processArchive } from "@/lib/comics/import";
 import { cropImage } from "@/lib/images/process";
-import { createProject, deleteProject, duplicateProject, getProject, listProjects, saveProject } from "@/lib/projects/repository";
+import { createProject, deleteProject, duplicateProject, getProject, listProjects, projectsUsingComic, saveProject } from "@/lib/projects/repository";
 import { exportProjectBundle, importProjectBundle } from "@/lib/projects/bundle";
 import { createImage, createLines, createQuestion, createPage } from "@/lib/document/factory";
 import type { ImageSource } from "@/lib/document/types";
@@ -99,6 +99,13 @@ describe("persistencia y recuperación de proyectos", () => {
     const li = loaded!.document.pages[0].elements.find((e) => e.id === img.id)!;
     expect([li.x, li.y, li.w, li.h, li.rotation]).toEqual([15.5, 70.2, img.w, img.h, -3]);
     expect(loaded!.document.pages[1].elements[0]).toEqual(lines);
+  });
+
+  it("sabe qué exámenes usan un cómic (para avisar antes de borrarlo)", async () => {
+    const page = await prisma.comicPage.findFirstOrThrow({ where: { index: 19 } });
+    const users = await projectsUsingComic(page.comicId);
+    expect(users.map((u) => u.name)).toContain("Examen final");
+    expect(await projectsUsingComic("noexiste123")).toEqual([]);
   });
 
   it("lista, duplica y elimina proyectos", async () => {

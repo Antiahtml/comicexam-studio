@@ -96,6 +96,33 @@ export function referencedPageIds(doc: ExamDocument): string[] {
   return [...ids];
 }
 
+/** Ids de cómics usados por un documento. */
+export function referencedComicIds(doc: ExamDocument): string[] {
+  const ids = new Set<string>();
+  for (const p of doc.pages)
+    for (const e of p.elements) {
+      if (e.type === "image") ids.add(e.src.comicId);
+      if (e.type === "question" && e.image) ids.add(e.image.comicId);
+    }
+  return [...ids];
+}
+
+/** Exámenes que muestran alguna imagen de un cómic (para avisar antes de borrarlo). */
+export async function projectsUsingComic(comicId: string): Promise<{ id: string; name: string }[]> {
+  const rows = await prisma.project.findMany({ select: { id: true, name: true, document: true }, orderBy: { updatedAt: "desc" } });
+  return rows
+    .filter((r) => {
+      // Comprobación rápida antes de analizar el JSON completo.
+      if (!r.document.includes(comicId)) return false;
+      try {
+        return referencedComicIds(JSON.parse(r.document) as ExamDocument).includes(comicId);
+      } catch {
+        return false;
+      }
+    })
+    .map((r) => ({ id: r.id, name: r.name }));
+}
+
 /** Inserta una imagen (página o viñeta) en la última hoja de un proyecto desde la biblioteca. */
 export async function appendImageToProject(projectId: string, src: ImageSource): Promise<void> {
   const project = await getProject(projectId);

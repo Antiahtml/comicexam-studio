@@ -19,6 +19,10 @@ async function drawRegion(page: Page, layer: Locator, from: [number, number], to
   await page.mouse.up();
 }
 
+async function closeViewer(page: Page) {
+  await page.getByRole("dialog").getByRole("button", { name: "Cerrar", exact: true }).click();
+}
+
 async function openViewerAt(page: Page, pageNumber: number) {
   await page.getByTestId("left-tab-comics").click();
   await page.getByTestId("editor-comic-item").first().click();
@@ -50,7 +54,19 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   await expect(viewer.getByTestId("region-card")).toHaveCount(1);
   await viewer.getByTestId("insert-region").click();
   await expect(viewer.getByText("Guardada")).toBeVisible();
-  await page.keyboard.press("Escape");
+
+  // Una segunda selección sin guardar no se pierde al cerrar: el visor pregunta qué hacer.
+  await drawRegion(page, viewer.getByTestId("region-layer"), [0.55, 0.05], [0.9, 0.3]);
+  await expect(viewer.getByText("Borrador", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape"); // primero solo deselecciona
+  await expect(viewer).toBeVisible();
+  await page.keyboard.press("Escape"); // después intenta cerrar
+  const choice = page.getByTestId("choice-dialog");
+  await expect(choice).toContainText("Tienes 1 viñeta sin guardar");
+  await choice.getByRole("button", { name: "Seguir seleccionando" }).click();
+  await expect(viewer).toBeVisible();
+  await closeViewer(page);
+  await choice.getByRole("button", { name: "Guardar y salir" }).click();
   await expect(viewer).toBeHidden();
   const page1 = page.getByTestId("exam-page-1");
   await expect(page1.locator("[data-el-type=image]")).toHaveCount(1);
@@ -78,7 +94,7 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   await viewer.getByLabel("Marcar viñeta 1").check();
   await viewer.getByLabel("Marcar viñeta 2").check();
   await viewer.getByTestId("insert-row").click();
-  await page.keyboard.press("Escape");
+  await closeViewer(page);
   await expect(viewer).toBeHidden();
 
   // Las dos viñetas quedan a la misma altura, una junto a otra (en la hoja 1 o en una nueva si no caben)
@@ -128,8 +144,13 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   await page.getByRole("link", { name: "Volver al editor" }).click();
   await page.waitForURL(/\/editor\/[^/]+$/);
 
-  // 16. Exportar PDF con nombre personalizado
+  // 16. Exportar PDF: primero la revisión avisa de que la nota total (10) no coincide con la suma
   await page.getByTestId("export-pdf").click();
+  const review = page.getByTestId("export-review");
+  const totalIssue = review.locator("[data-kind=totalMismatch]");
+  await expect(totalIssue).toBeVisible();
+  await totalIssue.getByRole("button", { name: "Usar la suma" }).click();
+  await expect(totalIssue).toHaveCount(0);
   await page.getByTestId("pdf-filename").fill("Examen comprensión 2.º ESO");
   const downloadPromise = page.waitForEvent("download");
   await page.getByTestId("download-pdf").click();
@@ -157,4 +178,18 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   }
   expect(imageWidths.length).toBeGreaterThanOrEqual(3);
   expect(Math.max(...imageWidths)).toBeGreaterThanOrEqual(400);
+
+  // Las cuatro viñetas quedaron guardadas en la biblioteca (incluida la del aviso de borradores)
+  const selections = await (await page.request.get("/api/selections")).json();
+  expect(selections).toHaveLength(4);
+
+  // 17. Borrar un cómic que se usa en un examen avisa de qué exámenes se verán afectados
+  await page.goto("/biblioteca");
+  const comicCard = page.getByTestId("comic-card").first();
+  await comicCard.hover();
+  await comicCard.getByRole("button", { name: "Acciones" }).click();
+  await page.getByRole("menuitem", { name: "Eliminar" }).click();
+  await expect(page.getByTestId("comic-usage-warning")).toContainText("Comprensión lectora — Cómic");
+  await page.getByTestId("choice-dialog").getByRole("button", { name: "Cancelar" }).click();
+  await expect(comicCard).toBeVisible();
 });

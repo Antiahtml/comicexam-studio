@@ -23,6 +23,7 @@ import type {
 } from "@/lib/document/types";
 import { fontCss } from "@/lib/document/fonts";
 import { sourceUrl } from "@/lib/images/urls";
+import { SafeImage } from "./safe-image";
 
 export type RenderQuality = "screen" | "print" | "thumb";
 
@@ -79,12 +80,9 @@ function TextContent({ el, ctx }: { el: TextElement; ctx: RenderContext }) {
 
 function SourceImage({ src, quality, fit, style }: { src: ImageSource; quality: RenderQuality; fit: string; style?: CSSProperties }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <SafeImage
       src={sourceUrl(src, quality)}
       alt={src.label}
-      draggable={false}
-      data-print-image
       style={{ display: "block", width: "100%", height: "100%", objectFit: fit as CSSProperties["objectFit"], userSelect: "none", ...style }}
     />
   );

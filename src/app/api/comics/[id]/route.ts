@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { handle, ID_RE, jsonError } from "@/lib/api";
 import { removeComicFiles } from "@/lib/storage";
 import { isImportActive } from "@/lib/comics/import";
+import { projectsUsingComic } from "@/lib/projects/repository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,10 +48,21 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   return NextResponse.json({ ok: true });
 });
 
-export const DELETE = handle(async (_req: Request, { params }: Ctx) => {
+/**
+ * Elimina el cómic. Si algún examen usa sus imágenes, responde 409 con la lista de exámenes
+ * salvo que se confirme explícitamente con ?force=1.
+ */
+export const DELETE = handle(async (req: Request, { params }: Ctx) => {
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonError("Identificador no válido", 400);
   if (isImportActive(id)) return jsonError("El cómic se está importando todavía. Espera a que termine.", 409);
+  const usedBy = await projectsUsingComic(id);
+  if (usedBy.length > 0 && new URL(req.url).searchParams.get("force") !== "1") {
+    return NextResponse.json(
+      { error: `Este cómic se usa en ${usedBy.length} examen(es). Confirma para eliminarlo igualmente.`, usedBy },
+      { status: 409 },
+    );
+  }
   await prisma.comic.delete({ where: { id } });
   await removeComicFiles(id);
   return NextResponse.json({ ok: true });

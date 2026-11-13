@@ -100,8 +100,13 @@ npm run seed
 7. Arrastra, redimensiona (tiradores), gira, alinea, duplica o elimina. **Doble clic** en un texto para escribir.
    El panel derecho muestra las propiedades del elemento seleccionado; sin selección, las **capas** de la hoja.
 8. Añade hojas, reordénalas en la tira inferior y mueve elementos entre hojas (arrastrándolos o con «Mover a la hoja»).
-9. El examen se **guarda solo** (indicador arriba). **Vista previa** muestra el PDF final; **Exportar PDF** lo descarga
-   con el nombre que elijas.
+9. El examen se **guarda solo** (indicador arriba). **Vista previa** muestra el PDF final; **Exportar PDF** hace antes
+   una **revisión** (textos que no caben, elementos fuera de la hoja, imágenes de baja resolución, nota total que no
+   coincide con la suma de puntos…) con botones para ir al problema o arreglarlo, y descarga el PDF con el nombre que elijas.
+
+Lo que insertas desde los paneles va a la **hoja que estás viendo**; la vista se desplaza hasta el elemento nuevo y lo
+resalta. Si no cabe, se crea una hoja nueva (con opción de deshacer). Al cerrar el visor con viñetas **sin guardar**,
+la app pregunta si guardarlas; borrar una viñeta se puede deshacer, y borrar un cómic avisa de los exámenes que lo usan.
 
 Atajos: `Supr` eliminar · `⌘/Ctrl D` duplicar · `⌘/Ctrl C/X/V` copiar/cortar/pegar · `⌘/Ctrl Z` deshacer
 (`⇧` rehacer) · flechas mover 1 mm (`⇧` 10 mm) · `Alt` + arrastrar sin ajuste magnético · `⌘/Ctrl S` guardar ·
@@ -220,7 +225,7 @@ Las fuentes están incluidas en la aplicación (paquetes `@fontsource`), por lo 
 npm test
 ```
 
-59 pruebas (Vitest) que cubren:
+71 pruebas (Vitest) que cubren:
 
 - **Importación y ordenación**: CBR (RAR5) y CBZ reales generados al vuelo, orden natural, entradas ignoradas,
   el cómic de 48 páginas completo, rutas peligrosas, bombas de descompresión, archivos dañados, límites.
@@ -229,6 +234,8 @@ npm test
   rechazar documentos no válidos, exportar/importar `.comicexam`.
 - **Exportación**: Chromium genera PDF A4 vertical/horizontal con una página por hoja.
 - Modelo del documento: avisos de márgenes y solapes, numeración automática, ajuste magnético, alineación.
+- **Revisión antes de exportar** (fuera de la hoja, márgenes, solapes, baja resolución, nota total, hojas vacías…)
+  y comportamiento del editor al insertar (hoja visible, hoja nueva si no cabe, deshacer).
 
 ```bash
 npm run test:e2e
@@ -237,8 +244,10 @@ npm run test:e2e
 Prueba **end-to-end** en un navegador real sobre la versión de producción, con datos aislados
 (`test-data.nosync/e2e`): importar el CBR → abrir la página 12 → dibujar una selección con el ratón → añadir al
 examen → pregunta con 4 líneas → página 20 con dos viñetas una junto a otra → segunda hoja → autoguardado →
-recargar y comprobar que todo sigue → vista previa → descargar el PDF con nombre personalizado y comprobar A4,
-número de páginas e imágenes a resolución original.
+recargar y comprobar que todo sigue → vista previa → revisión antes de exportar (corrige la nota total) →
+descargar el PDF con nombre personalizado y comprobar A4, número de páginas e imágenes a resolución original.
+También comprueba que una viñeta sin guardar no se pierde al cerrar el visor y que borrar un cómic en uso avisa
+de qué exámenes se verán afectados.
 
 ### Datos de prueba
 

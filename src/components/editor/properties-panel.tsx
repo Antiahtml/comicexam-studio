@@ -42,10 +42,11 @@ import { Button } from "@/components/ui/button";
 import { Tip } from "@/components/ui/tooltip";
 import { ColorField, Field, NumberField, Section, Segmented, SwitchRow, TextField } from "./fields";
 import { CropDialog } from "./crop-dialog";
+import { measureContentHeightMm } from "./dom-utils";
 import { FONTS } from "@/lib/document/fonts";
 import { QUESTION_LABELS } from "@/lib/document/factory";
 import { pageWarnings, questionNumbers } from "@/lib/document/geometry";
-import { PX_PER_MM, roundMm } from "@/lib/document/units";
+import { roundMm } from "@/lib/document/units";
 import { cropAspect } from "@/lib/regions/coords";
 import { cropUrl } from "@/lib/images/urls";
 import type {
@@ -300,13 +301,8 @@ function ElementPanel({ el, pageIndex }: { el: ExamElement; pageIndex: number })
 
   /** Ajusta la altura de la caja a su contenido real (medido en el editor). */
   const fitHeight = () => {
-    const node = document.querySelector<HTMLElement>(`[data-el-id="${el.id}"] [data-content] > div`);
-    if (!node) return;
-    const prev = node.style.height;
-    node.style.height = "auto";
-    const px = node.scrollHeight;
-    node.style.height = prev;
-    up({ h: roundMm(px / PX_PER_MM + 1) });
+    const h = measureContentHeightMm(el.id);
+    if (h) up({ h });
   };
 
   return (
@@ -343,20 +339,7 @@ function ElementPanel({ el, pageIndex }: { el: ExamElement; pageIndex: number })
             {outside === "outsideMargins" && <p>Invade los márgenes de impresión.</p>}
             {overlap && <p>Se superpone con {overlap.length} elemento(s).</p>}
             {outside && (
-              <button
-                className="font-medium text-primary hover:underline"
-                onClick={() =>
-                  st.updateElement(el.id, (e: ExamElement) => {
-                    const m = doc.settings.margins;
-                    const pw = doc.settings.orientation === "portrait" ? 210 : 297;
-                    const ph = doc.settings.orientation === "portrait" ? 297 : 210;
-                    e.w = Math.min(e.w, pw - m.left - m.right);
-                    e.h = Math.min(e.h, ph - m.top - m.bottom);
-                    e.x = Math.min(Math.max(e.x, m.left), pw - m.right - e.w);
-                    e.y = Math.min(Math.max(e.y, m.top), ph - m.bottom - e.h);
-                  })
-                }
-              >
+              <button className="font-medium text-primary hover:underline" onClick={() => st.fitInsideMargins(el.id)}>
                 Colocar dentro de los márgenes
               </button>
             )}

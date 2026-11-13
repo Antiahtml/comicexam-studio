@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { ArrowDown, ArrowUp, Copy, FilePlus2, Trash2 } from "lucide-react";
-import { useEditor } from "@/store/editor-store";
+import { toast } from "sonner";
+import { setPreferredPageResolver, useEditor } from "@/store/editor-store";
+import { revealElements } from "./dom-utils";
 import { EditorPage } from "./editor-page";
 import { questionNumbers } from "@/lib/document/geometry";
 import { Tip } from "@/components/ui/tooltip";
@@ -46,6 +48,66 @@ export function EditorCanvas() {
     }
     prevCount.current = pageCount;
   }, [pageCount]);
+
+  /**
+   * Hoja en la que debe ir lo que se inserte desde los paneles: la activa si se eligió hace un
+   * momento o si se ve bien; si no, la que más espacio ocupa en pantalla.
+   */
+  useEffect(() => {
+    const preferred = (): string | null => {
+      const st = useEditor.getState();
+      if (Date.now() - st.activeSetAt < 1500) return st.activePageId;
+      const sc = scroller.current;
+      if (!sc) return null;
+      const view = sc.getBoundingClientRect();
+      let best: string | null = null;
+      let bestH = 0;
+      let activeH = 0;
+      sc.querySelectorAll<HTMLElement>("[data-page-wrapper]").forEach((w) => {
+        const r = w.getBoundingClientRect();
+        const h = Math.max(0, Math.min(r.bottom, view.bottom) - Math.max(r.top, view.top));
+        if (w.dataset.pageWrapper === st.activePageId) activeH = h;
+        if (h > bestH) {
+          bestH = h;
+          best = w.dataset.pageWrapper!;
+        }
+      });
+      return activeH >= view.height * 0.3 || activeH >= bestH ? st.activePageId : best;
+    };
+    setPreferredPageResolver(preferred);
+    // Al dejar de desplazarse, la hoja activa pasa a ser la que se está viendo.
+    const sc = scroller.current;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        const id = preferred();
+        if (id && id !== useEditor.getState().activePageId) useEditor.setState({ activePageId: id });
+      }, 200);
+    };
+    sc?.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      clearTimeout(t);
+      sc?.removeEventListener("scroll", onScroll);
+      setPreferredPageResolver(null);
+    };
+  }, []);
+
+  // Lo recién insertado se muestra y se resalta; si no cabía, se avisa de la hoja nueva.
+  const lastInserted = useEditor((s) => s.lastInserted);
+  useEffect(() => {
+    if (!lastInserted) return;
+    const raf = requestAnimationFrame(() =>
+      requestAnimationFrame(() => revealElements(lastInserted.ids, useEditor.getState().zoom)),
+    );
+    if (lastInserted.newPages > 0 && lastInserted.firstNewPage !== null) {
+      const n = lastInserted.firstNewPage + 1;
+      toast.info(lastInserted.newPages === 1 ? `No cabía en la hoja anterior: se ha añadido en la nueva hoja ${n}.` : `Se han creado ${lastInserted.newPages} hojas nuevas.`, {
+        action: { label: "Deshacer", onClick: () => useEditor.getState().undo() },
+      });
+    }
+    return () => cancelAnimationFrame(raf);
+  }, [lastInserted]);
 
   // Al cambiar de hoja activa desde la tira de miniaturas, se desplaza hasta ella.
   useEffect(() => {

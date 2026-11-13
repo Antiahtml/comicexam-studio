@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlignLeft,
   ArrowLeft,
@@ -42,7 +42,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/misc";
 import { Tip } from "@/components/ui/tooltip";
-import { ComicViewer, type InsertLayout } from "@/components/comics/comic-viewer";
+import { ComicViewer, type ComicViewerHandle, type InsertLayout } from "@/components/comics/comic-viewer";
 import { ImportDropzone, ImportTasks } from "@/components/comics/import-dropzone";
 import { useComics } from "@/components/comics/library-view";
 import { useComicImport } from "@/hooks/use-comic-import";
@@ -71,14 +71,36 @@ export function LeftPanel() {
   const tab = useEditor((s) => s.leftTab);
   const [viewer, setViewer] = useState<{ comicId: string; page: number } | null>(null);
 
-  const onInsert = useCallback((sources: ImageSource[], layout: InsertLayout) => {
-    const st = useEditor.getState();
-    st.insertImages(sources, layout);
-    const pageIdx = st.doc.pages.findIndex((p) => p.id === useEditor.getState().activePageId);
-    toast.success(sources.length === 1 ? "Imagen añadida al examen" : `${sources.length} imágenes añadidas`, {
-      description: `Hoja ${pageIdx + 1}. Puedes seguir seleccionando o cerrar el visor.`,
-    });
+  const viewerRef = useRef<ComicViewerHandle>(null);
+
+  /** Cierra el visor sin perder viñetas: si hay borradores, pregunta qué hacer con ellos. */
+  const closeViewer = useCallback(async (): Promise<boolean> => {
+    const ok = (await viewerRef.current?.confirmLeave()) ?? true;
+    if (!ok) return false;
+    setViewer(null);
+    window.dispatchEvent(new Event(SELECTIONS_CHANGED));
+    return true;
   }, []);
+
+  const onInsert = useCallback(
+    (sources: ImageSource[], layout: InsertLayout) => {
+      const st = useEditor.getState();
+      st.insertImages(sources, layout);
+      const after = useEditor.getState();
+      const ids = after.lastInserted?.ids ?? [];
+      const pageIdx = after.doc.pages.findIndex((p) => p.id === after.activePageId);
+      toast.success(sources.length === 1 ? "Imagen añadida al examen" : `${sources.length} imágenes añadidas`, {
+        description: `En la hoja ${pageIdx + 1}. Puedes seguir seleccionando viñetas.`,
+        action: {
+          label: "Ver en el examen",
+          onClick: async () => {
+            if (await closeViewer()) useEditor.getState().reveal(ids);
+          },
+        },
+      });
+    },
+    [closeViewer],
+  );
 
   return (
     <div className="flex h-full min-h-0">
@@ -112,15 +134,23 @@ export function LeftPanel() {
       <Dialog
         open={!!viewer}
         onOpenChange={(o) => {
-          if (!o) {
-            setViewer(null);
-            window.dispatchEvent(new Event(SELECTIONS_CHANGED));
-          }
+          if (!o) void closeViewer();
         }}
       >
-        <DialogContent className="flex h-[94vh] max-w-[97vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-[97vw]" aria-describedby={undefined}>
-          <DialogTitle className="border-b px-4 py-3 text-sm">Visor de cómics · selecciona viñetas y añádelas a la hoja activa</DialogTitle>
-          <div className="min-h-0 flex-1">{viewer && <ComicViewer comicId={viewer.comicId} mode="editor" initialPage={viewer.page} onInsert={onInsert} />}</div>
+        <DialogContent
+          className="flex h-[94vh] max-w-[97vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-[97vw]"
+          aria-describedby={undefined}
+          // Esc primero deselecciona la viñeta activa; solo cierra si no hay ninguna seleccionada.
+          onEscapeKeyDown={(e) => {
+            if (viewerRef.current?.consumeEscape()) e.preventDefault();
+          }}
+          // Un clic fuera no cierra el visor (se perdería el trabajo por accidente).
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <DialogTitle className="border-b px-4 py-3 pr-12 text-sm">Visor de cómics · selecciona viñetas y añádelas a la hoja que estás viendo</DialogTitle>
+          <div className="min-h-0 flex-1">
+            {viewer && <ComicViewer ref={viewerRef} comicId={viewer.comicId} mode="editor" initialPage={viewer.page} onInsert={onInsert} />}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
