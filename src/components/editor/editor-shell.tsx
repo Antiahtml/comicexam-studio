@@ -32,6 +32,7 @@ import { LeftPanel } from "./left-panel";
 import { EditorCanvas } from "./editor-canvas";
 import { PropertiesPanel } from "./properties-panel";
 import { PageStrip } from "./page-strip";
+import { animateZoomTo, zoomBy } from "./zoom-motion";
 import { ExportPdfDialog } from "./export-dialog";
 import { PX_PER_MM, pageSize } from "@/lib/document/units";
 import { cn, downloadBlob, safeFileName } from "@/lib/utils";
@@ -154,10 +155,10 @@ function useShortcuts() {
         st.nudge(dx, dy);
       } else if (mod && (e.key === "+" || e.key === "=")) {
         e.preventDefault();
-        st.setZoom(st.zoom * 1.15);
+        zoomBy(1.15);
       } else if (mod && e.key === "-") {
         e.preventDefault();
-        st.setZoom(st.zoom / 1.15);
+        zoomBy(1 / 1.15);
       } else if (e.key === "Enter" && st.selectedIds.length === 1) {
         st.setEditing(st.selectedIds[0]);
       }
@@ -189,17 +190,16 @@ function ProjectName() {
 function ZoomControls() {
   const zoom = useEditor((s) => s.zoom);
   const orientation = useEditor((s) => s.doc.settings.orientation);
-  const st = useEditor.getState();
   const fitWidth = () => {
     const canvas = document.querySelector<HTMLElement>("[data-testid=editor-canvas]");
     if (!canvas) return;
     const { width } = pageSize(orientation);
-    st.setZoom((canvas.clientWidth - 100) / (width * PX_PER_MM));
+    animateZoomTo((canvas.clientWidth - 100) / (width * PX_PER_MM));
   };
   return (
     <div className="flex items-center gap-0.5">
       <Tip label="Alejar (⌘/Ctrl −)">
-        <Button variant="ghost" size="iconSm" onClick={() => st.setZoom(zoom / 1.15)} aria-label="Alejar">
+        <Button variant="ghost" size="iconSm" onClick={() => zoomBy(1 / 1.15)} aria-label="Alejar">
           <ZoomOut />
         </Button>
       </Tip>
@@ -211,7 +211,7 @@ function ZoomControls() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="min-w-32">
           {[0.5, 0.75, 1, 1.25, 1.5, 2].map((z) => (
-            <DropdownMenuItem key={z} onSelect={() => st.setZoom(z)}>
+            <DropdownMenuItem key={z} onSelect={() => animateZoomTo(z)}>
               {z * 100} %
             </DropdownMenuItem>
           ))}
@@ -220,7 +220,7 @@ function ZoomControls() {
         </DropdownMenuContent>
       </DropdownMenu>
       <Tip label="Acercar (⌘/Ctrl +)">
-        <Button variant="ghost" size="iconSm" onClick={() => st.setZoom(zoom * 1.15)} aria-label="Acercar">
+        <Button variant="ghost" size="iconSm" onClick={() => zoomBy(1.15)} aria-label="Acercar">
           <ZoomIn />
         </Button>
       </Tip>
@@ -249,7 +249,7 @@ function TopBar({ onExport }: { onExport: () => void }) {
   };
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-card px-3">
+    <header className="material absolute inset-x-0 top-0 z-30 flex h-14 items-center gap-2 px-3 shadow-[0_1px_0_var(--material-edge)]">
       <Tip label="Volver a mis exámenes">
         <Link
           href="/"
@@ -349,10 +349,13 @@ export function EditorShell({ project }: { project: { id: string; name: string; 
   }, []);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background" data-testid="editor">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-background" data-testid="editor">
+      {/* La barra superior flota sobre el lienzo, que se desplaza por debajo; los paneles laterales empiezan bajo ella. */}
       <TopBar onExport={openExport} />
       <div className="flex min-h-0 flex-1">
-        <LeftPanel />
+        <div className="flex min-h-0 bg-card pt-14">
+          <LeftPanel />
+        </div>
         <main className="flex min-w-0 flex-1 flex-col">
           {ready ? (
             <>
@@ -360,12 +363,16 @@ export function EditorShell({ project }: { project: { id: string; name: string; 
               <PageStrip />
             </>
           ) : (
-            <div className="flex flex-1 items-center justify-center text-muted-foreground">
+            <div className="flex flex-1 items-center justify-center pt-14 text-muted-foreground">
               <Loader2 className="mr-2 size-5 animate-spin" /> Abriendo examen…
             </div>
           )}
         </main>
-        {ready && <PropertiesPanel />}
+        {ready && (
+          <div className="flex min-h-0 bg-card pt-14">
+            <PropertiesPanel />
+          </div>
+        )}
       </div>
       <ExportPdfDialog key={exportOpen ? "open" : "closed"} open={exportOpen} onOpenChange={setExportOpen} />
     </div>

@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { ArrowDown, ArrowUp, Copy, FilePlus2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { setPreferredPageResolver, useEditor } from "@/store/editor-store";
 import { revealElements } from "./dom-utils";
+import { clampZoom, setZoomAnchor, stopZoomAnimation, takeZoomAnchor } from "./zoom-motion";
 import { EditorPage } from "./editor-page";
 import { questionNumbers } from "@/lib/document/geometry";
 import { Tip } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
 import { PX_PER_MM, pageSize } from "@/lib/document/units";
-import { cn } from "@/lib/utils";
+import { cn, scrollBehavior } from "@/lib/utils";
 
 /** Zona central: todas las hojas del examen, con zoom y acciones por hoja. */
 export function EditorCanvas() {
@@ -24,19 +25,70 @@ export function EditorCanvas() {
   const confirm = useConfirm();
   const { width } = pageSize(doc.settings.orientation);
 
-  // Zoom con Ctrl/Cmd + rueda
+  /*
+   * Zoom con Ctrl/Cmd + rueda o pellizco del trackpad: proporcional a la magnitud del gesto
+   * (un pellizco suave da un cambio suave) y anclado al cursor. Se acumula el valor sin
+   * redondear para que los pasos muy pequeños del pellizco no se pierdan al redondear.
+   */
+  const wheelZoom = useRef<number | null>(null);
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
+      stopZoomAnimation();
       const st = useEditor.getState();
-      st.setZoom(st.zoom * (e.deltaY < 0 ? 1.08 : 0.92));
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1;
+      const delta = Math.max(-10, Math.min(10, e.deltaY * unit));
+      const acc = wheelZoom.current;
+      const base = acc !== null && Math.abs(Math.round(acc * 100) / 100 - st.zoom) < 0.006 ? acc : st.zoom;
+      const next = clampZoom(base * Math.exp(-delta * 0.01));
+      wheelZoom.current = next;
+      setZoomAnchor({ x: e.clientX, y: e.clientY });
+      st.setZoom(next);
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
+
+  /*
+   * Anclaje del zoom: justo cuando cambia el zoom (antes de que React vuelva a pintar) se mide
+   * qué punto de qué hoja está bajo el anclaje; tras pintar, se corrige el desplazamiento para
+   * que ese punto siga en el mismo sitio de la pantalla.
+   */
+  const pendingAnchor = useRef<{ id: string; fx: number; fy: number; px: number; py: number } | null>(null);
+  useEffect(
+    () =>
+      useEditor.subscribe((s, prev) => {
+        const requested = takeZoomAnchor();
+        if (s.zoom === prev.zoom || pendingAnchor.current) return;
+        const sc = scroller.current;
+        if (!sc) return;
+        const box = sc.getBoundingClientRect();
+        const p = requested ?? { x: box.left + box.width / 2, y: box.top + 56 + (box.height - 56) / 2 };
+        let best: { id: string; r: DOMRect; d: number } | null = null;
+        sc.querySelectorAll<HTMLElement>("[data-page-surface]").forEach((node) => {
+          const r = node.getBoundingClientRect();
+          const d = p.y < r.top ? r.top - p.y : p.y > r.bottom ? p.y - r.bottom : 0;
+          if (!best || d < best.d) best = { id: node.dataset.pageSurface!, r, d };
+        });
+        if (!best) return;
+        const { id, r } = best as { id: string; r: DOMRect };
+        pendingAnchor.current = { id, fx: (p.x - r.left) / r.width, fy: (p.y - r.top) / r.height, px: p.x, py: p.y };
+      }),
+    [],
+  );
+  useLayoutEffect(() => {
+    const a = pendingAnchor.current;
+    pendingAnchor.current = null;
+    const sc = scroller.current;
+    const node = a && sc?.querySelector<HTMLElement>(`[data-page-surface="${a.id}"]`);
+    if (!a || !sc || !node) return;
+    const r = node.getBoundingClientRect();
+    sc.scrollLeft += r.left + a.fx * r.width - a.px;
+    sc.scrollTop += r.top + a.fy * r.height - a.py;
+  }, [zoom]);
 
   // Al añadir una hoja, se desplaza hasta ella.
   const pageCount = doc.pages.length;
@@ -44,7 +96,7 @@ export function EditorCanvas() {
   useEffect(() => {
     if (pageCount > prevCount.current) {
       const id = useEditor.getState().activePageId;
-      requestAnimationFrame(() => scroller.current?.querySelector(`[data-page-wrapper="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      requestAnimationFrame(() => scroller.current?.querySelector(`[data-page-wrapper="${id}"]`)?.scrollIntoView({ behavior: scrollBehavior(), block: "start" }));
     }
     prevCount.current = pageCount;
   }, [pageCount]);
@@ -113,7 +165,7 @@ export function EditorCanvas() {
   useEffect(() => {
     const handler = (e: Event) => {
       const id = (e as CustomEvent<string>).detail;
-      scroller.current?.querySelector(`[data-page-wrapper="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scroller.current?.querySelector(`[data-page-wrapper="${id}"]`)?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
     };
     window.addEventListener("comicexam:scroll-to-page", handler);
     return () => window.removeEventListener("comicexam:scroll-to-page", handler);
@@ -122,7 +174,7 @@ export function EditorCanvas() {
   return (
     <div
       ref={scroller}
-      className="thin-scroll relative min-h-0 flex-1 overflow-auto bg-canvas"
+      className="thin-scroll relative min-h-0 flex-1 scroll-pt-18 overflow-auto bg-canvas"
       data-testid="editor-canvas"
       onPointerDown={(e) => {
         if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.canvasBg !== undefined) {
@@ -130,7 +182,7 @@ export function EditorCanvas() {
         }
       }}
     >
-      <div className="flex min-w-fit flex-col items-center gap-4 px-10 py-6" data-canvas-bg style={{ minWidth: width * PX_PER_MM * zoom + 80 }}>
+      <div className="flex min-w-fit flex-col items-center gap-4 px-10 pt-20 pb-6" data-canvas-bg style={{ minWidth: width * PX_PER_MM * zoom + 80 }}>
         {doc.pages.map((page, i) => (
           <div key={page.id} data-page-wrapper={page.id} className="flex flex-col gap-1.5" data-canvas-bg>
             <div className="flex items-center justify-between px-0.5" style={{ width: width * PX_PER_MM * zoom }} data-canvas-bg>

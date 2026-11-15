@@ -51,3 +51,9 @@ export function safeFileName(name: string, fallback = "examen"): string {
     .slice(0, 120);
   return cleaned || fallback;
 }
+
+/** Desplazamiento suave salvo que el usuario haya pedido reducir el movimiento. */
+export function scrollBehavior(): ScrollBehavior {
+  if (typeof window === "undefined" || !window.matchMedia) return "smooth";
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+}

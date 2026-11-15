@@ -459,18 +459,40 @@ export function ComicViewer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goTo, pageIdx, activeKey]);
 
-  // Zoom con Ctrl + rueda
+  /*
+   * Zoom con Ctrl/Cmd + rueda o pellizco: proporcional al gesto y anclado al cursor (el punto
+   * de la página que está bajo el puntero no se mueve).
+   */
+  const pageBoxRef = useRef<HTMLDivElement>(null);
+  const zoomAnchor = useRef<{ fx: number; fy: number; px: number; py: number } | null>(null);
   useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
-      setZoom((z) => Math.min(4, Math.max(0.5, z * (e.deltaY < 0 ? 1.1 : 0.9))));
+      const box = pageBoxRef.current;
+      if (box) {
+        const r = box.getBoundingClientRect();
+        zoomAnchor.current = { fx: (e.clientX - r.left) / r.width, fy: (e.clientY - r.top) / r.height, px: e.clientX, py: e.clientY };
+      }
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1;
+      const delta = Math.max(-10, Math.min(10, e.deltaY * unit));
+      setZoom((z) => Math.min(4, Math.max(0.5, z * Math.exp(-delta * 0.01))));
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, [comic]);
+  useLayoutEffect(() => {
+    const a = zoomAnchor.current;
+    zoomAnchor.current = null;
+    const el = stageRef.current;
+    const box = pageBoxRef.current;
+    if (!a || !el || !box) return;
+    const r = box.getBoundingClientRect();
+    el.scrollLeft += r.left + a.fx * r.width - a.px;
+    el.scrollTop += r.top + a.fy * r.height - a.py;
+  }, [zoom]);
 
   // Desplazamiento con la herramienta "mano"
   const pan = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
@@ -532,7 +554,7 @@ export function ComicViewer({
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-semibold">Páginas ({pageCount})</span>
             {checkedPages.size > 0 && (
-              <button className="text-[11px] text-primary hover:underline" onClick={() => setCheckedPages(new Set())}>
+              <button className="text-2xs text-primary hover:underline" onClick={() => setCheckedPages(new Set())}>
                 Quitar selección
               </button>
             )}
@@ -572,7 +594,7 @@ export function ComicViewer({
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={pageImageUrl(p.id, "thumb")} alt={`Página ${i + 1}`} loading="lazy" className="w-full" style={{ aspectRatio: `${p.width}/${p.height}` }} />
-                <span className="absolute bottom-1 left-1 rounded bg-slate-900/75 px-1.5 text-[10px] font-semibold text-white">{i + 1}</span>
+                <span className="absolute bottom-1 left-1 rounded bg-slate-900/75 px-1.5 text-2xs font-semibold text-white">{i + 1}</span>
                 {hasSel && (
                   <span className="absolute right-1 bottom-1 rounded bg-emerald-500 p-0.5 text-white" title="Tiene viñetas guardadas">
                     <Scissors className="size-2.5" />
@@ -580,7 +602,7 @@ export function ComicViewer({
                 )}
                 <input
                   type="checkbox"
-                  className={cn("absolute top-1 right-1 size-4 accent-amber-500", !checkedPages.has(i) && "opacity-0 group-hover:opacity-100")}
+                  className={cn("absolute top-1 right-1 size-4 accent-amber-500", !checkedPages.has(i) && "hover-reveal")}
                   checked={checkedPages.has(i)}
                   onClick={(e) => e.stopPropagation()}
                   onChange={(e) => toggleCheck(i, e)}
@@ -696,7 +718,7 @@ export function ComicViewer({
           onPointerUp={() => (pan.current = null)}
         >
           <div className="flex min-h-full min-w-full items-center justify-center p-6" style={{ width: displayW + 48, height: displayH + 48 }}>
-            <div className="relative shrink-0 bg-white shadow-xl" style={{ width: displayW, height: displayH }}>
+            <div ref={pageBoxRef} className="relative shrink-0 bg-white shadow-xl" style={{ width: displayW, height: displayH }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imgUrl} alt={`Página ${pageIdx + 1}`} className="pointer-events-none size-full select-none" draggable={false} />
               <div className={cn("absolute inset-0", tool === "pan" && "pointer-events-none")}>
@@ -725,7 +747,7 @@ export function ComicViewer({
         <div className="flex items-center justify-between border-b px-3 py-2.5">
           <div>
             <p className="text-sm font-semibold">Viñetas de la página {pageIdx + 1}</p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-2xs text-muted-foreground">
               {regions.filter((r) => r.saved).length} guardadas · {regions.filter((r) => !r.saved).length} sin guardar
             </p>
           </div>
@@ -781,7 +803,7 @@ export function ComicViewer({
                     }
                     aria-label={`Marcar viñeta ${i + 1}`}
                   />
-                  <span className={cn("flex size-5 items-center justify-center rounded text-[11px] font-bold text-white", r.saved ? "bg-emerald-500" : "bg-amber-500")}>{i + 1}</span>
+                  <span className={cn("flex size-5 items-center justify-center rounded text-2xs font-bold text-white", r.saved ? "bg-emerald-500" : "bg-amber-500")}>{i + 1}</span>
                   <input
                     className="min-w-0 flex-1 rounded border-transparent bg-transparent px-1 text-xs font-medium outline-none hover:border-input focus:border-input focus:bg-card"
                     value={r.label}
@@ -794,7 +816,7 @@ export function ComicViewer({
                 <div className="checker overflow-hidden rounded border">
                   <CropPreview imageUrl={pageImageUrl(page.id, "preview")} rect={r.rect} pageWidth={page.width} pageHeight={page.height} />
                 </div>
-                <p className="mt-1 text-[10px] text-muted-foreground tabular-nums">
+                <p className="mt-1 text-2xs text-muted-foreground tabular-nums">
                   {Math.round(r.rect.w * page.width)}×{Math.round(r.rect.h * page.height)} px originales
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -831,12 +853,12 @@ export function ComicViewer({
           </div>
         )}
         {active && (
-          <div className="border-t px-3 py-2 text-[11px] text-muted-foreground tabular-nums">
+          <div className="border-t px-3 py-2 text-2xs text-muted-foreground tabular-nums">
             x {(active.rect.x * 100).toFixed(1)} % · y {(active.rect.y * 100).toFixed(1)} % · {(active.rect.w * 100).toFixed(1)} × {(active.rect.h * 100).toFixed(1)} %
           </div>
         )}
         {mode === "library" && (
-          <div className="border-t p-3 text-[11px] text-muted-foreground">
+          <div className="border-t p-3 text-2xs text-muted-foreground">
             <Check className="mr-1 inline size-3" />
             Las viñetas guardadas aparecen en el editor, en la pestaña <strong>Viñetas</strong>.{" "}
             <Link href="/" className="text-primary hover:underline">

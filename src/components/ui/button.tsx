@@ -4,16 +4,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0",
+  // La respuesta llega al pulsar (active), no al soltar: escala breve que vuelve con la curva de salida.
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none select-none transition-[color,background-color,border-color,box-shadow,translate,scale,opacity] duration-200 ease-out active:duration-75 motion-safe:active:scale-[0.97] focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
-        comic: "bg-comic text-white shadow-sm hover:bg-comic/90",
-        destructive: "bg-destructive text-white shadow-sm hover:bg-destructive/90",
-        outline: "border border-input bg-card shadow-xs hover:bg-muted",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-muted hover:text-foreground",
+        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 active:bg-primary/85",
+        comic: "bg-comic text-white shadow-xs hover:bg-comic/90 active:bg-comic/85",
+        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90 active:bg-destructive/85",
+        outline: "border border-border bg-card shadow-xs hover:bg-muted active:bg-secondary",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70 active:bg-secondary",
+        ghost: "hover:bg-muted hover:text-foreground active:bg-secondary",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

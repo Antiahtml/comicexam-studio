@@ -1,6 +1,7 @@
 "use client";
 
 import { PX_PER_MM, roundMm } from "@/lib/document/units";
+import { scrollBehavior } from "@/lib/utils";
 
 /**
  * Utilidades que miden el renderizado real de las hojas en el editor.
@@ -47,7 +48,7 @@ export function findMissingImageElements(): string[] {
 export function revealElements(ids: string[], zoom: number): void {
   const nodes = ids.map((id) => document.querySelector<HTMLElement>(`[data-el-id="${CSS.escape(id)}"]`)).filter(Boolean) as HTMLElement[];
   if (!nodes.length) return;
-  nodes[0].scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+  nodes[0].scrollIntoView({ behavior: scrollBehavior(), block: "center", inline: "nearest" });
   const ring = 5 / zoom;
   for (const n of nodes) {
     n.animate(

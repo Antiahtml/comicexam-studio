@@ -43,7 +43,7 @@ const Thumb = memo(function Thumb({ page, index, ctx, active }: { page: ExamPage
           <PageSurface doc={ctx.doc} page={page} pageIndex={index} ctx={ctx} />
         </div>
       </button>
-      <span className={cn("text-[10px] font-medium text-muted-foreground", active && "text-primary")}>{index + 1}</span>
+      <span className={cn("text-2xs font-medium text-muted-foreground", active && "text-primary")}>{index + 1}</span>
     </div>
   );
 });
@@ -80,7 +80,7 @@ export function PageStrip() {
         aria-label="Añadir hoja"
       >
         <Plus className="size-5" />
-        <span className="text-[10px]">Hoja</span>
+        <span className="text-2xs">Hoja</span>
       </button>
     </div>
   );

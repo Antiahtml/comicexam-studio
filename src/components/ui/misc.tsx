@@ -8,12 +8,12 @@ export function Switch({ className, ...props }: React.ComponentProps<typeof Swit
   return (
     <SwitchPrimitive.Root
       className={cn(
-        "peer inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-transparent shadow-xs outline-none transition-all focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300",
+        "peer inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-transparent outline-none transition-colors duration-200 focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200",
         className,
       )}
       {...props}
     >
-      <SwitchPrimitive.Thumb className="pointer-events-none block size-4 rounded-full bg-white shadow ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%)] data-[state=unchecked]:translate-x-0.5" />
+      <SwitchPrimitive.Thumb className="pointer-events-none block size-4 rounded-full bg-white shadow-sm ring-0 transition-transform duration-300 data-[state=checked]:translate-x-[calc(100%)] data-[state=unchecked]:translate-x-0.5" />
     </SwitchPrimitive.Root>
   );
 }
@@ -34,7 +34,7 @@ export function Badge({ className, variant = "default", ...props }: React.Compon
     error: "bg-red-100 text-red-700",
     success: "bg-green-100 text-green-700",
   }[variant];
-  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium", styles, className)} {...props} />;
+  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-medium", styles, className)} {...props} />;
 }
 
 export function Separator({ className, vertical }: { className?: string; vertical?: boolean }) {
@@ -48,7 +48,7 @@ export function PopoverContent({ className, sideOffset = 6, ...props }: React.Co
     <P.Portal>
       <P.Content
         sideOffset={sideOffset}
-        className={cn("z-50 rounded-lg border bg-popover p-3 shadow-lg outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0", className)}
+        className={cn("z-50 rounded-xl border border-black/5 bg-popover p-3 shadow-lg outline-none origin-(--radix-popover-content-transform-origin) data-[state=open]:animate-materialize-in data-[state=closed]:animate-materialize-out", className)}
         {...props}
       />
     </P.Portal>

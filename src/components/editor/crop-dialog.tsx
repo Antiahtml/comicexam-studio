@@ -61,7 +61,7 @@ function CropBody({ src, onSave, onClose }: { src: ImageSource; onSave: (rect: N
             <div className="checker overflow-hidden rounded border">
               <CropPreview imageUrl={pageImageUrl(src.pageId, "preview")} rect={rect} pageWidth={src.pageWidth} pageHeight={src.pageHeight} />
             </div>
-            <p className="text-[11px] text-muted-foreground tabular-nums">
+            <p className="text-2xs text-muted-foreground tabular-nums">
               {Math.round(rect.w * src.pageWidth)} × {Math.round(rect.h * src.pageHeight)} px originales
             </p>
             <Button variant="outline" size="sm" onClick={() => setRect(FULL_RECT)}>

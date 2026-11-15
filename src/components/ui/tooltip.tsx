@@ -13,7 +13,7 @@ export function Tip({ label, children, side = "bottom" }: { label: React.ReactNo
         <T.Content
           side={side}
           sideOffset={6}
-          className="z-[60] rounded-md bg-slate-900 px-2 py-1 text-xs text-white shadow-md data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0"
+          className="z-[60] origin-(--radix-tooltip-content-transform-origin) rounded-md bg-slate-900/90 px-2 py-1 text-xs font-medium text-white shadow-md backdrop-blur-md [--materialize-blur:0px] [--materialize-scale:0.92] data-[state=delayed-open]:animate-materialize-in data-[state=closed]:animate-materialize-out"
         >
           {label}
         </T.Content>

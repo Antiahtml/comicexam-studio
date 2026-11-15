@@ -14,7 +14,7 @@ const NAV = [
 export function AppHeader() {
   const pathname = usePathname();
   return (
-    <header className="sticky top-0 z-30 border-b bg-card/85 backdrop-blur">
+    <header className="material sticky top-0 z-30 shadow-[0_1px_0_var(--material-edge)]">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:px-6">
         <Link href="/" aria-label="Inicio">
           <Logo />
@@ -27,8 +27,8 @@ export function AppHeader() {
                 key={n.href}
                 href={n.href}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                  active && "bg-secondary text-secondary-foreground hover:bg-secondary",
+                  "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-[color,background-color,translate,scale] hover:bg-black/[0.04] hover:text-foreground active:bg-black/[0.07] motion-safe:active:scale-[0.97]",
+                  active && "bg-black/[0.06] text-foreground hover:bg-black/[0.06]",
                 )}
               >
                 <n.icon className="size-4" />

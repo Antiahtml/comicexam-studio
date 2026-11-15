@@ -112,7 +112,7 @@ export function LeftPanel() {
             onClick={() => useEditor.getState().setLeftTab(t.id)}
             data-testid={`left-tab-${t.id}`}
             className={cn(
-              "flex w-14 flex-col items-center gap-1 rounded-lg px-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+              "flex w-14 flex-col items-center gap-1 rounded-lg px-1 py-2 text-2xs font-medium text-muted-foreground transition-[color,background-color,translate,scale] hover:bg-muted hover:text-foreground motion-safe:active:scale-[0.95]",
               tab === t.id && "bg-secondary text-secondary-foreground hover:bg-secondary",
             )}
           >
@@ -160,7 +160,7 @@ export function LeftPanel() {
 
 function PanelHeader({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b bg-card/95 px-4 py-3 backdrop-blur">
+    <div className="sticky top-0 z-10 flex items-center justify-between gap-2 material px-4 py-3 shadow-[0_1px_0_var(--material-edge)]">
       <h2 className="text-sm font-semibold">{title}</h2>
       {children}
     </div>
@@ -200,7 +200,7 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
           <Button className="w-full" onClick={() => onOpen(openComic.id, 0)} data-testid="open-viewer">
             <Scissors /> Abrir visor y seleccionar viñetas
           </Button>
-          <p className="text-[11px] leading-snug text-muted-foreground">
+          <p className="text-2xs leading-snug text-muted-foreground">
             Haz clic en una página para abrirla en el visor, o <strong>arrástrala</strong> a una hoja para insertarla completa.
           </p>
           {!detail ? (
@@ -223,7 +223,7 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={pageImageUrl(p.id, "thumb")} alt={`Página ${i + 1}`} loading="lazy" className="w-full" style={{ aspectRatio: `${p.width}/${p.height}` }} draggable={false} />
-                  <span className="absolute bottom-1 left-1 rounded bg-slate-900/75 px-1.5 text-[10px] font-semibold text-white">{i + 1}</span>
+                  <span className="absolute bottom-1 left-1 rounded bg-slate-900/75 px-1.5 text-2xs font-semibold text-white">{i + 1}</span>
                 </button>
               ))}
             </div>
@@ -268,7 +268,7 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{c.title}</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-2xs text-muted-foreground">
                       {c.status === "processing" ? `${c.stage} ${c.progress} %` : c.status === "error" ? "Error al importar" : `${c.pageCount} páginas`}
                     </p>
                   </div>
@@ -337,7 +337,7 @@ function PanelsTab() {
                 ))}
               </select>
             )}
-            <p className="text-[11px] text-muted-foreground">Haz clic para insertar o arrastra a una hoja. Marca varias para colocarlas una junto a otra.</p>
+            <p className="text-2xs text-muted-foreground">Haz clic para insertar o arrastra a una hoja. Marca varias para colocarlas una junto a otra.</p>
             {checked.size >= 2 && (
               <Button
                 size="sm"
@@ -367,11 +367,11 @@ function PanelsTab() {
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={cropUrl(s.pageId, s.rect, "thumb")} alt={s.label} loading="lazy" className="max-h-36 w-full bg-white object-contain" draggable={false} />
-                    <span className="block truncate px-1.5 py-1 text-[10px] text-muted-foreground">{s.label}</span>
+                    <span className="block truncate px-1.5 py-1 text-2xs text-muted-foreground">{s.label}</span>
                   </button>
                   <input
                     type="checkbox"
-                    className={cn("absolute top-1 right-1 size-4 accent-indigo-600", !checked.has(s.id) && "opacity-0 group-hover:opacity-100")}
+                    className={cn("absolute top-1 right-1 size-4 accent-indigo-600", !checked.has(s.id) && "hover-reveal")}
                     checked={checked.has(s.id)}
                     onChange={() =>
                       setChecked((c) => {
@@ -461,12 +461,12 @@ function TemplatesTab({ title, items, hint }: { title: string; items: TemplateIt
             </span>
             <span className="min-w-0">
               <span className="block text-sm font-medium">{it.label}</span>
-              {it.description && <span className="block text-[11px] text-muted-foreground">{it.description}</span>}
+              {it.description && <span className="block text-2xs text-muted-foreground">{it.description}</span>}
             </span>
           </button>
         ))}
-        {hint && <p className="pt-1 text-[11px] leading-snug text-muted-foreground">{hint}</p>}
-        <p className="pt-1 text-[11px] text-muted-foreground">Clic para añadir a la hoja activa, o arrastra a cualquier hoja.</p>
+        {hint && <p className="pt-1 text-2xs leading-snug text-muted-foreground">{hint}</p>}
+        <p className="pt-1 text-2xs text-muted-foreground">Clic para añadir a la hoja activa, o arrastra a cualquier hoja.</p>
       </div>
     </div>
   );

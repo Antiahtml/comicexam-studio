@@ -23,7 +23,7 @@ export function DocumentSettings() {
 
   return (
     <div data-testid="document-settings">
-      <div className="sticky top-0 z-10 border-b bg-card/95 px-4 py-3 backdrop-blur">
+      <div className="material sticky top-0 z-10 px-4 py-3 shadow-[0_1px_0_var(--material-edge)]">
         <h2 className="text-sm font-semibold">Documento</h2>
       </div>
       <Section title="Datos del examen">
@@ -42,7 +42,7 @@ export function DocumentSettings() {
           </Field>
         </div>
         <NumberField label="Puntuación total" value={m.totalScore ?? 0} min={0} step={0.5} onChange={(v) => st.updateMeta({ totalScore: v }, "score")} />
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-2xs text-muted-foreground">
           Suma de las preguntas: <strong>{sum}</strong>{" "}
           {sum > 0 && sum !== m.totalScore && (
             <button className="text-primary hover:underline" onClick={() => st.updateMeta({ totalScore: sum })}>
@@ -75,7 +75,7 @@ export function DocumentSettings() {
         />
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Márgenes (mm)</span>
+            <span className="text-2xs font-medium text-muted-foreground">Márgenes (mm)</span>
             <div className="flex gap-1">
               {[
                 ["Estrechos", 10],
@@ -84,7 +84,7 @@ export function DocumentSettings() {
               ].map(([label, v]) => (
                 <button
                   key={label}
-                  className="rounded px-1.5 py-0.5 text-[10px] text-primary hover:bg-secondary"
+                  className="rounded px-1.5 py-0.5 text-2xs text-primary hover:bg-secondary"
                   onClick={() => st.updateSettings({ margins: { top: v as number, right: v as number, bottom: v as number, left: v as number } })}
                 >
                   {label}
@@ -161,7 +161,7 @@ export function DocumentSettings() {
                   </Field>
                 ))}
               </div>
-              <p className="text-[11px] leading-snug text-muted-foreground">
+              <p className="text-2xs leading-snug text-muted-foreground">
                 Variables: {"{titulo}"} {"{asignatura}"} {"{curso}"} {"{fecha}"} {"{pagina}"} {"{total}"}
               </p>
             </>

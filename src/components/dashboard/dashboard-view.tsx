@@ -44,6 +44,8 @@ export function DashboardView() {
   const [newName, setNewName] = useState("");
   const [renaming, setRenaming] = useState<ProjectSummaryDTO | null>(null);
   const [busy, setBusy] = useState(false);
+  /** Menú de acciones abierto (también con clic derecho sobre la tarjeta). */
+  const [menuFor, setMenuFor] = useState<string | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -147,18 +149,19 @@ export function DashboardView() {
   const readyComics = (comics ?? []).filter((c) => c.status === "ready" && c.format !== "images");
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-14">
       {/* Cabecera */}
-      <section className="comic-dots relative overflow-hidden rounded-2xl border bg-card px-6 py-8 sm:px-10">
-        <div className="relative z-10 max-w-2xl space-y-4">
+      <section className="comic-dots relative overflow-hidden rounded-2xl bg-card px-6 py-10 shadow-sm sm:px-12 sm:py-14">
+        <div className="relative z-10 max-w-2xl space-y-5">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
             <Scissors className="size-3.5" /> Exámenes a partir de cómics
           </p>
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <h1 className="text-3xl font-bold sm:text-4xl">
             Crea exámenes visuales con <span className="font-comic text-[1.15em] font-normal tracking-wide text-primary">viñetas</span> de tus cómics
           </h1>
-          <p className="text-muted-foreground">Importa un CBR o CBZ, recorta las viñetas que necesites, colócalas en hojas A4 junto a tus preguntas y exporta un PDF listo para imprimir.</p>
-          <div className="flex flex-wrap gap-2 pt-1">
+          <p className="max-w-xl text-lg text-muted-foreground">Importa un CBR o CBZ, recorta las viñetas que necesites, colócalas en hojas A4 junto a tus preguntas y exporta un PDF listo para imprimir.</p>
+          {/* Una sola acción principal; el resto, en un segundo plano visual. */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
             <Button
               size="lg"
               onClick={() => {
@@ -174,9 +177,13 @@ export function DashboardView() {
                 <BookImage /> Biblioteca de cómics
               </Link>
             </Button>
-            <Button size="lg" variant="ghost" onClick={() => importInput.current?.click()}>
-              <FileUp /> Importar examen (.comicexam)
-            </Button>
+            <button
+              type="button"
+              onClick={() => importInput.current?.click()}
+              className="inline-flex items-center gap-1.5 rounded-md px-1 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 focus-visible:outline-none"
+            >
+              <FileUp className="size-4" /> o importa un examen (.comicexam)
+            </button>
             <input
               ref={importInput}
               type="file"
@@ -190,7 +197,7 @@ export function DashboardView() {
             />
           </div>
         </div>
-        <div className="pointer-events-none absolute -right-6 -bottom-8 hidden rotate-6 lg:block" aria-hidden>
+        <div className="pointer-events-none absolute -right-6 -bottom-8 hidden rotate-6 xl:block" aria-hidden>
           <div className="grid w-72 grid-cols-2 gap-2 rounded-xl border-4 border-slate-900 bg-white p-2 shadow-xl">
             <div className="col-span-2 h-20 rounded border-2 border-slate-900 bg-amber-200" />
             <div className="h-24 rounded border-2 border-slate-900 bg-indigo-200" />
@@ -203,7 +210,7 @@ export function DashboardView() {
       <section className="space-y-4">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Exámenes recientes</h2>
+            <h2 className="text-xl font-semibold">Exámenes recientes</h2>
             <p className="text-sm text-muted-foreground">Se guardan automáticamente mientras trabajas.</p>
           </div>
         </div>
@@ -235,24 +242,32 @@ export function DashboardView() {
                   setNewName("");
                   setCreating(true);
                 }}
-                className="flex aspect-[210/297] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-input bg-card/50 text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                className="flex aspect-[210/297] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-input bg-card/50 text-muted-foreground transition-[color,border-color,translate,scale] hover:border-primary hover:text-primary motion-safe:active:scale-[0.98]"
               >
                 <Plus className="size-8" />
                 <span className="text-sm font-medium">Nuevo examen</span>
               </button>
             </li>
             {projects.map((p) => (
-              <li key={p.id} className="group relative" data-testid="project-card">
-                <Link href={`/editor?id=${p.id}`} className="block overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <li
+                key={p.id}
+                className="group relative"
+                data-testid="project-card"
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setMenuFor(p.id);
+                }}
+              >
+                <Link href={`/editor?id=${p.id}`} className="block overflow-hidden rounded-xl bg-card shadow-sm transition-[translate,scale,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lg active:duration-100 motion-safe:active:translate-y-0 motion-safe:active:scale-[0.98] active:shadow-sm">
                   <div className="relative flex aspect-[210/240] items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 p-4">
                     {p.cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sourceUrl(p.cover, "thumb")} alt="" className="max-h-full max-w-full rounded border bg-white object-contain shadow-sm" loading="lazy" />
+                      <img src={sourceUrl(p.cover, "thumb")} alt="" className="max-h-full max-w-full rounded-sm bg-white object-contain shadow-md" loading="lazy" />
                     ) : (
                       <SquarePen className="size-10 text-slate-300" />
                     )}
                   </div>
-                  <div className="space-y-0.5 border-t p-3">
+                  <div className="space-y-0.5 p-3">
                     <p className="truncate font-semibold" title={p.name}>
                       {p.name}
                     </p>
@@ -261,9 +276,9 @@ export function DashboardView() {
                     </p>
                   </div>
                 </Link>
-                <DropdownMenu>
+                <DropdownMenu open={menuFor === p.id} onOpenChange={(o) => setMenuFor(o ? p.id : null)}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="iconSm" className="absolute top-2 right-2 opacity-0 shadow-sm group-hover:opacity-100 data-[state=open]:opacity-100" aria-label="Acciones">
+                    <Button variant="outline" size="iconSm" className="hover-reveal absolute top-2 right-2 shadow-sm" aria-label="Acciones">
                       <MoreVertical />
                     </Button>
                   </DropdownMenuTrigger>
@@ -303,7 +318,7 @@ export function DashboardView() {
       <section className="space-y-4">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Biblioteca de cómics</h2>
+            <h2 className="text-xl font-semibold">Biblioteca de cómics</h2>
             <p className="text-sm text-muted-foreground">{readyComics.length} cómic{readyComics.length === 1 ? "" : "s"} disponibles.</p>
           </div>
           <Button variant="outline" asChild>
@@ -319,7 +334,7 @@ export function DashboardView() {
             {readyComics.slice(0, 12).map((c) => (
               <li key={c.id} className="w-32 shrink-0">
                 <Link href={`/visor?id=${c.id}`} className="block space-y-1.5">
-                  <div className="aspect-[2/3] overflow-hidden rounded-lg border bg-muted shadow-xs transition-transform hover:-translate-y-0.5">
+                  <div className="aspect-[2/3] overflow-hidden rounded-lg bg-muted shadow-sm ring-1 ring-black/5 transition-[translate,scale,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-md active:duration-100 motion-safe:active:scale-[0.97]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {c.coverPageId && <img src={pageImageUrl(c.coverPageId, "thumb")} alt="" className="size-full object-cover" loading="lazy" />}
                   </div>

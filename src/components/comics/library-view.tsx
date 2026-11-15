@@ -72,6 +72,8 @@ function StorageInfo({ refreshKey }: { refreshKey: number }) {
 }
 
 export function LibraryView() {
+  /** Menú de acciones abierto (también con clic derecho sobre la tarjeta). */
+  const [menuFor, setMenuFor] = useState<string | null>(null);
   const { comics, reload } = useComics();
   const { tasks, importFiles, dismiss } = useComicImport(() => void reload());
   const confirm = useConfirm();
@@ -165,11 +167,19 @@ export function LibraryView() {
       ) : (
         <ul className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
           {comics.map((c) => (
-            <li key={c.id} className="group relative" data-testid="comic-card">
+            <li
+              key={c.id}
+              className="group relative"
+              data-testid="comic-card"
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setMenuFor(c.id);
+              }}
+            >
               <Link
                 href={c.status === "ready" ? `/visor?id=${c.id}` : "#"}
                 aria-disabled={c.status !== "ready"}
-                className="block overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className="block overflow-hidden rounded-xl bg-card shadow-sm transition-[translate,scale,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lg active:duration-100 motion-safe:active:translate-y-0 motion-safe:active:scale-[0.98] active:shadow-sm"
               >
                 <div className="relative aspect-[2/3] bg-muted">
                   {c.coverPageId ? (
@@ -208,12 +218,12 @@ export function LibraryView() {
                       <span>{formatBytes(c.sizeBytes)}</span>
                     </p>
                   )}
-                  <p className="text-[11px] text-muted-foreground/80">{relativeTime(c.createdAt)}</p>
+                  <p className="text-2xs text-muted-foreground/80">{relativeTime(c.createdAt)}</p>
                 </div>
               </Link>
-              <DropdownMenu>
+              <DropdownMenu open={menuFor === c.id} onOpenChange={(o) => setMenuFor(o ? c.id : null)}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="iconSm" className="absolute top-2 right-2 opacity-0 shadow-sm group-hover:opacity-100 data-[state=open]:opacity-100" aria-label="Acciones">
+                  <Button variant="outline" size="iconSm" className="hover-reveal absolute top-2 right-2 shadow-sm" aria-label="Acciones">
                     <MoreVertical />
                   </Button>
                 </DropdownMenuTrigger>

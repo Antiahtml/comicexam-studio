@@ -34,13 +34,13 @@ export function ImportDropzone({
         if (e.dataTransfer.files.length) onFiles(Array.from(e.dataTransfer.files));
       }}
       className={cn(
-        "relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-input bg-card text-center transition-colors",
+        "relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-input bg-card text-center transition-[border-color,background-color,box-shadow,scale] duration-300",
         compact ? "px-3 py-5" : "px-6 py-10",
-        over && "border-primary bg-secondary",
+        over && "border-primary bg-primary/[0.04] shadow-lg motion-safe:scale-[1.015]",
         className,
       )}
     >
-      <div className={cn("flex items-center justify-center rounded-full bg-secondary text-primary", compact ? "size-9" : "size-14")}>
+      <div className={cn("flex items-center justify-center rounded-full bg-secondary text-primary transition-[translate,scale] duration-300", compact ? "size-9" : "size-14", over && "motion-safe:-translate-y-1 motion-safe:scale-110")}>
         <Upload className={compact ? "size-4" : "size-6"} />
       </div>
       <div className="space-y-1">

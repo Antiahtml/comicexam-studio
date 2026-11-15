@@ -150,7 +150,7 @@ export function RegionSelector({
           >
             <span
               className={cn(
-                "pointer-events-none absolute -top-px -left-px rounded-br-md px-1.5 py-0.5 text-[11px] font-bold text-white",
+                "pointer-events-none absolute -top-px -left-px rounded-br-md px-1.5 py-0.5 text-2xs font-bold text-white",
                 active ? "bg-primary" : r.saved ? "bg-emerald-500" : "bg-amber-500",
               )}
             >

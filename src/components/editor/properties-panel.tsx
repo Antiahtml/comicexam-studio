@@ -179,10 +179,10 @@ function PagePanel() {
             </SortableContext>
           </DndContext>
         )}
-        <p className="text-[11px] text-muted-foreground">Arriba = delante. Arrastra para cambiar el orden.</p>
+        <p className="text-2xs text-muted-foreground">Arriba = delante. Arrastra para cambiar el orden.</p>
       </Section>
       <Section title="Atajos">
-        <ul className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+        <ul className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-2xs text-muted-foreground">
           <li className="font-mono">Supr</li>
           <li>Eliminar</li>
           <li className="font-mono">⌘/Ctrl D</li>
@@ -307,10 +307,10 @@ function ElementPanel({ el, pageIndex }: { el: ExamElement; pageIndex: number })
 
   return (
     <>
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b bg-card/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 material px-4 py-3 shadow-[0_1px_0_var(--material-edge)]">
         <div className="min-w-0">
           <h2 className="truncate text-sm font-semibold">{TYPE_LABELS[el.type]}</h2>
-          <p className="text-[11px] text-muted-foreground">Hoja {pageIndex + 1}</p>
+          <p className="text-2xs text-muted-foreground">Hoja {pageIndex + 1}</p>
         </div>
         <div className="flex items-center gap-0.5">
           <Tip label={el.locked ? "Desbloquear" : "Bloquear posición"}>
@@ -706,7 +706,7 @@ function QuestionProps({ el, fitHeight }: { el: QuestionElement; fitHeight: () =
                 <Plus /> Añadir pareja
               </Button>
             )}
-            <p className="text-[11px] text-muted-foreground">Escribe la columna B ya desordenada: se imprime tal cual.</p>
+            <p className="text-2xs text-muted-foreground">Escribe la columna B ya desordenada: se imprime tal cual.</p>
           </div>
         </Section>
       )}
@@ -795,7 +795,7 @@ function LinesProps({ el }: { el: LinesElement }) {
         ]}
       />
       <ColorField label="Color" value={el.color} onChange={(v) => up({ color: v ?? "#6b7280" }, "c")} />
-      <p className="text-[11px] text-muted-foreground">La altura se ajusta automáticamente al número de líneas.</p>
+      <p className="text-2xs text-muted-foreground">La altura se ajusta automáticamente al número de líneas.</p>
     </Section>
   );
 }
@@ -834,7 +834,7 @@ function TableProps({ el }: { el: TableElement }) {
       </div>
       <SwitchRow label="Primera fila como cabecera" checked={el.headerRow} onChange={(v) => st.updateElement<TableElement>(el.id, { headerRow: v })} />
       <ColorField label="Bordes" value={el.borderColor} onChange={(v) => st.updateElement<TableElement>(el.id, { borderColor: v ?? "#4b5563" }, "bc")} />
-      <p className="text-[11px] font-medium text-muted-foreground">Contenido de las celdas</p>
+      <p className="text-2xs font-medium text-muted-foreground">Contenido de las celdas</p>
       <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${el.cols}, minmax(0, 1fr))` }}>
         {Array.from({ length: el.rows }, (_, r) =>
           Array.from({ length: el.cols }, (_, c) => (
@@ -852,7 +852,7 @@ function TableProps({ el }: { el: TableElement }) {
                   `cell-${r}-${c}`,
                 )
               }
-              className={cn("h-7 min-w-0 rounded border border-input bg-card px-1 text-[11px] outline-none focus-visible:border-ring", el.headerRow && r === 0 && "font-semibold")}
+              className={cn("h-7 min-w-0 rounded border border-input bg-card px-1 text-2xs outline-none focus-visible:border-ring", el.headerRow && r === 0 && "font-semibold")}
             />
           )),
         )}

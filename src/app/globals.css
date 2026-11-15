@@ -3,30 +3,39 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Paleta neutra (grises sin tinte azul) con un único acento: el índigo de la marca.
+ * El ámbar «cómic» queda reservado a la identidad (logo, rótulos), no a la interfaz.
+ */
 :root {
-  --radius: 0.6rem;
-  --background: #f5f6fa;
-  --foreground: #0f172a;
+  --radius: 0.625rem;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #1d1d1f;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #1d1d1f;
   --primary: #4f46e5;
   --primary-foreground: #ffffff;
-  --secondary: #eef2ff;
-  --secondary-foreground: #3730a3;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  /* Relleno neutro para estados activos/seleccionados (como los controles de macOS). */
+  --secondary: #ebebef;
+  --secondary-foreground: #1d1d1f;
+  --muted: #f0f0f3;
+  --muted-foreground: #6e6e73;
   --accent: #fef3c7;
   --accent-foreground: #92400e;
   --comic: #f59e0b;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --success: #16a34a;
-  --border: #e2e8f0;
-  --input: #cbd5e1;
+  --border: #e5e5ea;
+  --input: #d2d2d7;
   --ring: #6366f1;
-  --canvas: #e7e9f0;
+  --canvas: #e8e8ed;
+
+  /* Material translúcido para barras flotantes. */
+  --material: rgb(255 255 255 / 0.72);
+  --material-edge: rgb(0 0 0 / 0.06);
 }
 
 @theme inline {
@@ -60,6 +69,104 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+@theme {
+  /* «slate» se redefine como gris neutro: toda la interfaz pierde el tinte azulado. */
+  --color-slate-50: #f9f9fa;
+  --color-slate-100: #f2f2f4;
+  --color-slate-200: #e5e5ea;
+  --color-slate-300: #d1d1d6;
+  --color-slate-400: #aeaeb2;
+  --color-slate-500: #8e8e93;
+  --color-slate-600: #636366;
+  --color-slate-700: #48484a;
+  --color-slate-800: #2c2c2e;
+  --color-slate-900: #1d1d1f;
+  --color-slate-950: #111113;
+
+  /*
+   * Escala tipográfica: cada tamaño lleva su propio interletrado (negativo al crecer,
+   * ligeramente positivo en los tamaños pequeños) y su interlineado (más ajustado al crecer).
+   */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-2xs--letter-spacing: 0.01em;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-xs--letter-spacing: 0.005em;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-sm--letter-spacing: -0.006em;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-base--letter-spacing: -0.011em;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.625rem;
+  --text-lg--letter-spacing: -0.014em;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-xl--letter-spacing: -0.017em;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.95rem;
+  --text-2xl--letter-spacing: -0.019em;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-3xl--letter-spacing: -0.021em;
+  --text-4xl: 2.375rem;
+  --text-4xl--line-height: 2.6rem;
+  --text-4xl--letter-spacing: -0.022em;
+
+  /*
+   * Elevación: sombras suaves en capas (contacto + ambiente). Las superficies grandes
+   * proyectan sombras más profundas que los controles pequeños.
+   */
+  --shadow-2xs: 0 1px 0 rgb(0 0 0 / 0.03);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.04), 0 2px 8px rgb(0 0 0 / 0.04);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 1px 3px rgb(0 0 0 / 0.04), 0 6px 18px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 2px 6px rgb(0 0 0 / 0.04), 0 12px 32px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 4px 10px rgb(0 0 0 / 0.05), 0 20px 48px rgb(0 0 0 / 0.12);
+  --shadow-2xl: 0 8px 20px rgb(0 0 0 / 0.06), 0 32px 72px rgb(0 0 0 / 0.16);
+
+  /* Movimiento: una sola curva de salida, rápida al principio y suave al asentarse. */
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --default-transition-duration: 180ms;
+  --default-transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Barra translúcida: el contenido se intuye por debajo sin restar legibilidad. */
+@utility material {
+  background-color: var(--material);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/*
+ * «Materializar»: las superficies flotantes (diálogos, menús, tooltips) llegan como un
+ * material que se enfoca y crece desde su origen, y se van por el mismo camino.
+ * Se anima `scale` (no `transform`) para no pisar el `translate` de centrado.
+ */
+@keyframes materialize-in {
+  from {
+    opacity: 0;
+    scale: var(--materialize-scale, 0.96);
+    filter: blur(var(--materialize-blur, 4px));
+  }
+}
+@keyframes materialize-out {
+  to {
+    opacity: 0;
+    scale: var(--materialize-scale-out, 0.97);
+    filter: blur(var(--materialize-blur, 4px));
+  }
+}
+@utility animate-materialize-in {
+  animation: materialize-in 260ms var(--ease-out) both;
+}
+@utility animate-materialize-out {
+  animation: materialize-out 150ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -68,6 +175,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
@@ -78,12 +187,12 @@
 /* Barra de desplazamiento discreta en paneles */
 .thin-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #c7c7cc transparent;
 }
 
 /* Patrón de puntos tipo cómic para fondos decorativos */
 .comic-dots {
-  background-image: radial-gradient(rgba(79, 70, 229, 0.14) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(79, 70, 229, 0.08) 1px, transparent 1px);
   background-size: 14px 14px;
 }
 
@@ -95,4 +204,71 @@
     linear-gradient(45deg, transparent 75%, #eef0f4 75%), linear-gradient(-45deg, transparent 75%, #eef0f4 75%);
   background-size: 16px 16px;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+/* ------------------------- Preferencias de accesibilidad ------------------------- */
+
+/* Menos movimiento: sin desplazamientos ni escalas; se conservan los fundidos y los cambios de color. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  ::before,
+  ::after {
+    --tw-enter-scale: 1 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-exit-rotate: 0 !important;
+    --materialize-scale: 1 !important;
+    --materialize-scale-out: 1 !important;
+  }
+}
+
+/* Menos transparencia: las barras pasan a ser opacas. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --material: var(--card);
+  }
+  .material {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Más contraste: bordes visibles y texto secundario más oscuro. */
+@media (prefers-contrast: more) {
+  :root {
+    --border: #a1a1a6;
+    --input: #8e8e93;
+    --muted-foreground: #3a3a3c;
+    --material: var(--card);
+  }
+  .material {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/*
+ * Controles que se revelan al pasar el ratón (acciones de tarjeta, casillas). Solo se ocultan
+ * con un puntero preciso que puede «pasar por encima»; en pantallas táctiles quedan siempre visibles.
+ */
+@layer components {
+  .hover-reveal {
+    transition: opacity 180ms var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .hover-reveal:not(:focus-visible):not([data-state="open"]) {
+      opacity: 0;
+    }
+    .group:hover .hover-reveal,
+    .group:focus-within .hover-reveal {
+      opacity: 1;
+    }
+  }
 }
