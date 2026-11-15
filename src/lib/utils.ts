@@ -28,31 +28,26 @@ export function relativeTime(d: string | Date): string {
   return formatDate(date);
 }
 
-/** Inicia la descarga de una URL del servidor (sin navegar fuera de la página). */
-export function downloadUrl(url: string): void {
+/** Descarga un archivo generado en el navegador. */
+export function downloadBlob(data: Blob | Uint8Array, fileName: string, type = "application/octet-stream"): void {
+  const blob = data instanceof Blob ? data : new Blob([data as BlobPart], { type });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "";
+  a.download = fileName;
   document.body.appendChild(a);
   a.click();
   a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
-/** fetch JSON con mensajes de error en español. */
-export async function api<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: init?.body && typeof init.body === "string" ? { "Content-Type": "application/json", ...init?.headers } : init?.headers,
-  });
-  if (!res.ok) {
-    let msg = `Error ${res.status}`;
-    try {
-      const j = await res.json();
-      if (j?.error) msg = j.error;
-    } catch {
-      /* respuesta sin JSON */
-    }
-    throw new Error(msg);
-  }
-  return (await res.json()) as T;
+/** Nombre de archivo seguro (sin caracteres no válidos en Windows/macOS). */
+export function safeFileName(name: string, fallback = "examen"): string {
+  const cleaned = name
+    .normalize("NFC")
+    .replace(/[\\/:*?"<>|\x00-\x1f]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+  return cleaned || fallback;
 }

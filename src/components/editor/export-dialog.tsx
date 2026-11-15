@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CircleAlert, CircleCheck, Eye, FileDown, Loader2, TriangleAlert, Wand2 } from "lucide-react";
+import { CircleAlert, CircleCheck, Eye, Loader2, Printer, TriangleAlert, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { useEditor } from "@/store/editor-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,29 +12,7 @@ import { domIssue, reviewDocument, sortIssues, type ReviewIssue } from "@/lib/do
 import { totalPoints } from "@/lib/document/geometry";
 import { findClippedElements, findMissingImageElements, measureContentHeightMm } from "./dom-utils";
 import { cn } from "@/lib/utils";
-
-/** Descarga el PDF generado por el servidor (Chromium) con el nombre elegido. */
-export async function downloadPdf(projectId: string, fileName: string): Promise<void> {
-  const res = await fetch(`/api/projects/${projectId}/pdf?filename=${encodeURIComponent(fileName)}`);
-  if (!res.ok) {
-    let msg = `Error ${res.status}`;
-    try {
-      msg = (await res.json()).error ?? msg;
-    } catch {
-      /* sin JSON */
-    }
-    throw new Error(msg);
-  }
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName.toLowerCase().endsWith(".pdf") ? fileName : `${fileName}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
-}
+import { printProject } from "@/lib/print";
 
 /** Revisión del examen: comprobaciones del documento + medidas del renderizado real del editor. */
 function useReview(open: boolean): ReviewIssue[] {
@@ -125,11 +103,11 @@ export function ExportPdfDialog({ open, onOpenChange }: { open: boolean; onOpenC
   const run = async () => {
     setBusy(true);
     try {
-      await downloadPdf(projectId, fileName.trim() || name);
-      toast.success("PDF generado", { description: "Revisa la carpeta de descargas." });
+      const { errors: missing } = await printProject(projectId, fileName.trim() || name);
+      if (missing > 0) toast.warning(`${missing} imagen(es) no están disponibles y saldrán como aviso.`);
       onOpenChange(false);
     } catch (err) {
-      toast.error("No se ha podido generar el PDF", { description: (err as Error).message });
+      toast.error("No se ha podido preparar la impresión", { description: (err as Error).message });
     } finally {
       setBusy(false);
     }
@@ -141,7 +119,8 @@ export function ExportPdfDialog({ open, onOpenChange }: { open: boolean; onOpenC
         <DialogHeader>
           <DialogTitle>Exportar PDF</DialogTitle>
           <DialogDescription>
-            A4 {doc.settings.orientation === "portrait" ? "vertical" : "horizontal"} · {doc.pages.length} hoja{doc.pages.length > 1 ? "s" : ""} · imágenes a resolución original.
+            A4 {doc.settings.orientation === "portrait" ? "vertical" : "horizontal"} · {doc.pages.length} hoja{doc.pages.length > 1 ? "s" : ""} · imágenes a resolución
+            original. Se abrirá la ventana de impresión: elige <strong>«Guardar como PDF»</strong> como destino (o tu impresora).
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-1.5">
@@ -176,13 +155,13 @@ export function ExportPdfDialog({ open, onOpenChange }: { open: boolean; onOpenC
 
         <DialogFooter>
           <Button variant="outline" asChild>
-            <Link href={`/editor/${projectId}/vista-previa`}>
+            <Link href={`/vista-previa?id=${projectId}`}>
               <Eye /> Vista previa
             </Link>
           </Button>
-          <Button onClick={run} disabled={busy} variant={errors > 0 ? "outline" : "default"} data-testid="download-pdf">
-            {busy ? <Loader2 className="animate-spin" /> : <FileDown />}
-            {busy ? "Generando…" : errors > 0 ? "Descargar igualmente" : "Descargar PDF"}
+          <Button onClick={run} disabled={busy} variant={errors > 0 ? "outline" : "default"} data-testid="print-pdf">
+            {busy ? <Loader2 className="animate-spin" /> : <Printer />}
+            {busy ? "Preparando…" : errors > 0 ? "Imprimir igualmente" : "Imprimir / Guardar PDF"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,9 +1,9 @@
 import path from "node:path";
-import fs from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { PDFDocument, PDFDict, PDFName, PDFNumber, PDFRawStream } from "pdf-lib";
 
 /**
+ * Versión web (GitHub Pages): todo ocurre en el navegador, sin servidor.
  * Flujo completo del caso de uso real:
  * importar CBR → abrir pág. 12 → seleccionar viñeta → insertarla → pregunta + 4 líneas →
  * pág. 20: dos viñetas una junto a otra → segunda hoja → guardar → reabrir → vista previa → PDF.
@@ -33,19 +33,29 @@ async function openViewerAt(page: Page, pageNumber: number) {
   return viewer;
 }
 
-test("importar cómic → seleccionar viñeta → insertar → pregunta → guardar → exportar PDF", async ({ page }) => {
-  // 1. Importar el CBR (RAR5) desde la biblioteca
-  await page.goto("/biblioteca");
+test("importar cómic → seleccionar viñeta → insertar → pregunta → guardar → exportar PDF", async ({ page, context }) => {
+  // window.print abre un diálogo nativo: se sustituye para registrar la llamada (también en iframes).
+  await context.addInitScript(() => {
+    window.print = () => {
+      const top = window.top as Window & { __printCalls?: number; __printTitle?: string };
+      top.__printCalls = (top.__printCalls ?? 0) + 1;
+      top.__printTitle = document.title;
+    };
+  });
+
+  // 1. Importar el CBR (RAR5) desde la biblioteca: se procesa en el navegador
+  await page.goto("biblioteca/");
   await page.getByTestId("comic-file-input").setInputFiles(FIXTURE);
   const card = page.getByTestId("comic-card").filter({ hasText: "48 págs." });
   await expect(card).toBeVisible({ timeout: 90_000 });
 
   // 2. Crear el examen
-  await page.goto("/");
+  await page.goto("./");
   await page.getByTestId("new-exam").click();
   await page.getByTestId("new-exam-name").fill("Comprensión lectora — Cómic");
   await page.getByTestId("create-exam").click();
-  await page.waitForURL(/\/editor\//);
+  await page.waitForURL(/\/editor\/\?id=/);
+  const projectId = new URL(page.url()).searchParams.get("id")!;
   await expect(page.getByTestId("exam-page-1")).toBeVisible();
 
   // 3-5. Abrir la página 12, seleccionar una viñeta con el ratón y añadirla al examen
@@ -134,15 +144,13 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   // 15. Vista previa de impresión
   await page.getByTestId("preview-link").click();
   await page.waitForURL(/vista-previa/);
-  await expect(page.locator("iframe")).toBeVisible();
-  await page.getByText("Vista rápida").click();
-  const frame = page.frameLocator("iframe");
+  const frame = page.frameLocator("[data-testid=preview-frame]");
   await expect(frame.locator(".print-page")).toHaveCount(pageCount);
   await expect(frame.locator("body[data-print-ready=true]")).toBeAttached({ timeout: 30_000 });
   // La vista de impresión no contiene controles del editor
   await expect(frame.locator("[data-handle], button")).toHaveCount(0);
   await page.getByRole("link", { name: "Volver al editor" }).click();
-  await page.waitForURL(/\/editor\/[^/]+$/);
+  await page.waitForURL(/\/editor\/\?id=/);
 
   // 16. Exportar PDF: primero la revisión avisa de que la nota total (10) no coincide con la suma
   await page.getByTestId("export-pdf").click();
@@ -152,12 +160,18 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   await totalIssue.getByRole("button", { name: "Usar la suma" }).click();
   await expect(totalIssue).toHaveCount(0);
   await page.getByTestId("pdf-filename").fill("Examen comprensión 2.º ESO");
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByTestId("download-pdf").click();
-  const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe("Examen comprensión 2.º ESO.pdf");
-  const bytes = await fs.readFile((await download.path())!);
-  expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+  await page.getByTestId("print-pdf").click();
+  // Se abre el diálogo de impresión de la vista de impresión, con el nombre elegido como título
+  await expect.poll(() => page.evaluate(() => (window as Window & { __printCalls?: number }).__printCalls ?? 0)).toBe(1);
+  expect(await page.evaluate(() => (window as Window & { __printTitle?: string }).__printTitle)).toBe("Examen comprensión 2.º ESO");
+
+  // El PDF que produce «Guardar como PDF» (misma vista de impresión, mismo motor Chromium)
+  const printView = await context.newPage();
+  await printView.goto(`imprimir/?id=${projectId}`);
+  await expect(printView.locator("body[data-print-ready=true]")).toBeAttached({ timeout: 60_000 });
+  const bytes = await printView.pdf({ preferCSSPageSize: true, printBackground: true });
+  await printView.close();
+  expect(Buffer.from(bytes).subarray(0, 5).toString()).toBe("%PDF-");
 
   const pdf = await PDFDocument.load(bytes);
   expect(pdf.getPageCount()).toBe(pageCount);
@@ -180,11 +194,12 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   expect(Math.max(...imageWidths)).toBeGreaterThanOrEqual(400);
 
   // Las cuatro viñetas quedaron guardadas en la biblioteca (incluida la del aviso de borradores)
-  const selections = await (await page.request.get("/api/selections")).json();
-  expect(selections).toHaveLength(4);
+  await page.keyboard.press("Escape");
+  await page.getByTestId("left-tab-panels").click();
+  await expect(page.getByTestId("saved-panel")).toHaveCount(4);
 
   // 17. Borrar un cómic que se usa en un examen avisa de qué exámenes se verán afectados
-  await page.goto("/biblioteca");
+  await page.goto("biblioteca/");
   const comicCard = page.getByTestId("comic-card").first();
   await comicCard.hover();
   await comicCard.getByRole("button", { name: "Acciones" }).click();

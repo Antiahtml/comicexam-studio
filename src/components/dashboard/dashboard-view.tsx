@@ -14,6 +14,7 @@ import {
   Pencil,
   Plus,
   Scissors,
+  Sparkles,
   SquarePen,
   Trash2,
   Upload,
@@ -26,7 +27,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useConfirm } from "@/components/ui/confirm";
 import { useComics } from "@/components/comics/library-view";
-import { api, downloadUrl, relativeTime } from "@/lib/utils";
+import { downloadBlob, relativeTime, safeFileName } from "@/lib/utils";
+import { createProject, deleteProject, duplicateProject, listProjects, onDataChange, renameProject } from "@/lib/local/repo";
+import { exportProjectBundle, importProjectBundle } from "@/lib/local/bundle";
+import { importOrderedImages } from "@/lib/local/import-service";
+import { withBase } from "@/lib/env";
 import { pageImageUrl, sourceUrl } from "@/lib/images/urls";
 import type { ProjectSummaryDTO } from "@/lib/client-types";
 
@@ -43,7 +48,7 @@ export function DashboardView() {
 
   const load = useCallback(async () => {
     try {
-      setProjects(await api<ProjectSummaryDTO[]>("/api/projects"));
+      setProjects(await listProjects());
     } catch (err) {
       toast.error("No se han podido cargar los exámenes", { description: (err as Error).message });
       setProjects([]);
@@ -51,19 +56,21 @@ export function DashboardView() {
   }, []);
   useEffect(() => {
     let alive = true;
-    api<ProjectSummaryDTO[]>("/api/projects")
+    listProjects()
       .then((p) => alive && setProjects(p))
       .catch(() => alive && setProjects([]));
+    const off = onDataChange("projects", () => void listProjects().then((p) => alive && setProjects(p)));
     return () => {
       alive = false;
+      off();
     };
   }, []);
 
   const create = async () => {
     setBusy(true);
     try {
-      const p = await api<{ id: string }>("/api/projects", { method: "POST", body: JSON.stringify({ name: newName.trim() || "Examen sin título" }) });
-      router.push(`/editor/${p.id}`);
+      const p = await createProject(newName.trim() || "Examen sin título");
+      router.push(`/editor?id=${p.id}`);
     } catch (err) {
       toast.error((err as Error).message);
       setBusy(false);
@@ -72,7 +79,7 @@ export function DashboardView() {
 
   const duplicate = async (p: ProjectSummaryDTO) => {
     try {
-      await api(`/api/projects/${p.id}/duplicate`, { method: "POST" });
+      await duplicateProject(p.id);
       toast.success("Examen duplicado");
       void load();
     } catch (err) {
@@ -84,7 +91,7 @@ export function DashboardView() {
     const ok = await confirm({ title: `¿Eliminar «${p.name}»?`, description: "Esta acción no se puede deshacer. Los cómics de la biblioteca no se borran.", confirmLabel: "Eliminar", destructive: true });
     if (!ok) return;
     try {
-      await api(`/api/projects/${p.id}`, { method: "DELETE" });
+      await deleteProject(p.id);
       toast.success("Examen eliminado");
       void load();
     } catch (err) {
@@ -95,7 +102,7 @@ export function DashboardView() {
   const rename = async () => {
     if (!renaming || !newName.trim()) return;
     try {
-      await api(`/api/projects/${renaming.id}`, { method: "PATCH", body: JSON.stringify({ name: newName.trim() }) });
+      await renameProject(renaming.id, newName.trim());
       setRenaming(null);
       void load();
     } catch (err) {
@@ -103,16 +110,37 @@ export function DashboardView() {
     }
   };
 
-  const importProject = async (file: File) => {
-    const t = toast.loading("Importando proyecto…");
+  const importProject = async (data: Blob, what = "Proyecto importado") => {
+    const t = toast.loading("Importando examen…", { description: "Se procesan sus imágenes en tu navegador." });
     try {
-      const res = await fetch("/api/projects/import", { method: "POST", body: file, headers: { "Content-Type": "application/zip" } });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
-      toast.success("Proyecto importado", { id: t });
-      router.push(`/editor/${json.id}`);
+      const id = await importProjectBundle(new Uint8Array(await data.arrayBuffer()), importOrderedImages);
+      toast.success(what, { id: t, description: undefined });
+      router.push(`/editor?id=${id}`);
     } catch (err) {
       toast.error("No se ha podido importar", { id: t, description: (err as Error).message });
+    }
+  };
+
+  /** Examen de ejemplo incluido en la web (con un cómic de prueba creado desde cero). */
+  const loadExample = async () => {
+    setBusy(true);
+    try {
+      const res = await fetch(withBase("/ejemplo.comicexam"));
+      if (!res.ok) throw new Error("No se ha podido descargar el ejemplo.");
+      await importProject(await res.blob(), "Examen de ejemplo cargado");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const exportProject = async (p: ProjectSummaryDTO) => {
+    try {
+      const bundle = await exportProjectBundle(p.id);
+      downloadBlob(bundle.data, `${safeFileName(bundle.name, "examen")}.comicexam`, "application/zip");
+    } catch (err) {
+      toast.error("No se ha podido exportar", { description: (err as Error).message });
     }
   };
 
@@ -147,7 +175,7 @@ export function DashboardView() {
               </Link>
             </Button>
             <Button size="lg" variant="ghost" onClick={() => importInput.current?.click()}>
-              <FileUp /> Importar proyecto
+              <FileUp /> Importar examen (.comicexam)
             </Button>
             <input
               ref={importInput}
@@ -189,9 +217,14 @@ export function DashboardView() {
             title="Aún no has creado ningún examen"
             description="Empieza con un examen en blanco: incluye una cabecera con título, nombre del alumno y nota."
             action={
-              <Button onClick={() => setCreating(true)}>
-                <Plus /> Crear mi primer examen
-              </Button>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button onClick={() => setCreating(true)}>
+                  <Plus /> Crear mi primer examen
+                </Button>
+                <Button variant="outline" onClick={loadExample} disabled={busy} data-testid="load-example">
+                  {busy ? <Loader2 className="animate-spin" /> : <Sparkles />} Ver un examen de ejemplo
+                </Button>
+              </div>
             }
           />
         ) : (
@@ -210,7 +243,7 @@ export function DashboardView() {
             </li>
             {projects.map((p) => (
               <li key={p.id} className="group relative" data-testid="project-card">
-                <Link href={`/editor/${p.id}`} className="block overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md">
+                <Link href={`/editor?id=${p.id}`} className="block overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md">
                   <div className="relative flex aspect-[210/240] items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 p-4">
                     {p.cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -236,7 +269,7 @@ export function DashboardView() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/editor/${p.id}`}>
+                      <Link href={`/editor?id=${p.id}`}>
                         <SquarePen /> Abrir
                       </Link>
                     </DropdownMenuItem>
@@ -251,7 +284,7 @@ export function DashboardView() {
                     <DropdownMenuItem onSelect={() => duplicate(p)}>
                       <Copy /> Duplicar
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => downloadUrl(`/api/projects/${p.id}/export`)}>
+                    <DropdownMenuItem onSelect={() => exportProject(p)}>
                       <Download /> Exportar (.comicexam)
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -285,7 +318,7 @@ export function DashboardView() {
           <ul className="flex gap-4 overflow-x-auto pb-2 thin-scroll">
             {readyComics.slice(0, 12).map((c) => (
               <li key={c.id} className="w-32 shrink-0">
-                <Link href={`/visor/${c.id}`} className="block space-y-1.5">
+                <Link href={`/visor?id=${c.id}`} className="block space-y-1.5">
                   <div className="aspect-[2/3] overflow-hidden rounded-lg border bg-muted shadow-xs transition-transform hover:-translate-y-0.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {c.coverPageId && <img src={pageImageUrl(c.coverPageId, "thumb")} alt="" className="size-full object-cover" loading="lazy" />}

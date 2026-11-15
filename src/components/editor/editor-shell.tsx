@@ -34,7 +34,9 @@ import { PropertiesPanel } from "./properties-panel";
 import { PageStrip } from "./page-strip";
 import { ExportPdfDialog } from "./export-dialog";
 import { PX_PER_MM, pageSize } from "@/lib/document/units";
-import { api, cn, downloadUrl } from "@/lib/utils";
+import { cn, downloadBlob, safeFileName } from "@/lib/utils";
+import { duplicateProject, saveProject } from "@/lib/local/repo";
+import { exportProjectBundle } from "@/lib/local/bundle";
 
 /* ------------------------------- Autoguardado ------------------------------- */
 
@@ -44,7 +46,7 @@ async function saveNow(): Promise<boolean> {
   const version = st.version;
   st.markSaving();
   try {
-    await api(`/api/projects/${st.projectId}`, { method: "PUT", body: JSON.stringify({ name: st.name, document: st.doc }) });
+    await saveProject(st.projectId, { name: st.name, document: st.doc });
     useEditor.getState().markSaved(version);
     return true;
   } catch (err) {
@@ -74,12 +76,7 @@ function useAutosave() {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       const st = useEditor.getState();
       if (st.version === st.savedVersion) return;
-      fetch(`/api/projects/${st.projectId}`, {
-        method: "PUT",
-        keepalive: true,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: st.name, document: st.doc }),
-      }).catch(() => undefined);
+      void saveNow();
       e.preventDefault();
     };
     window.addEventListener("beforeunload", onBeforeUnload);
@@ -243,9 +240,9 @@ function TopBar({ onExport }: { onExport: () => void }) {
   const duplicate = async () => {
     await saveNow();
     try {
-      const copy = await api<{ id: string }>(`/api/projects/${projectId}/duplicate`, { method: "POST" });
+      const copy = await duplicateProject(projectId);
       toast.success("Proyecto duplicado");
-      router.push(`/editor/${copy.id}`);
+      router.push(`/editor?id=${copy.id}`);
     } catch (err) {
       toast.error((err as Error).message);
     }
@@ -295,7 +292,7 @@ function TopBar({ onExport }: { onExport: () => void }) {
       </div>
       <Separator vertical />
       <Button variant="outline" size="sm" asChild>
-        <Link href={`/editor/${projectId}/vista-previa`} onClick={() => void saveNow()} data-testid="preview-link">
+        <Link href={`/vista-previa?id=${projectId}`} onClick={() => void saveNow()} data-testid="preview-link">
           <Eye /> Vista previa
         </Link>
       </Button>
@@ -312,13 +309,18 @@ function TopBar({ onExport }: { onExport: () => void }) {
           <DropdownMenuItem
             onSelect={async () => {
               await saveNow();
-              downloadUrl(`/api/projects/${projectId}/export`);
+              try {
+                const bundle = await exportProjectBundle(projectId);
+                downloadBlob(bundle.data, `${safeFileName(bundle.name)}.comicexam`, "application/zip");
+              } catch (err) {
+                toast.error("No se ha podido exportar", { description: (err as Error).message });
+              }
             }}
           >
-            <Download /> Exportar proyecto (.comicexam)
+            <Download /> Exportar examen (.comicexam)
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={duplicate}>
-            <Copy /> Duplicar proyecto
+            <Copy /> Duplicar examen
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -28,7 +28,8 @@ import { Tip } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CropPreview, RegionSelector, type Region } from "./region-selector";
 import { useChoice } from "@/components/ui/confirm";
-import { api, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { appendImageToProject, createSelection, deleteSelection, getComic, listProjects, listSelections, updateSelection } from "@/lib/local/repo";
 import { pageImageUrl } from "@/lib/images/urls";
 import { FULL_RECT, type NormRect } from "@/lib/regions/coords";
 import { pageToSource, selectionToSource, type ComicDetail, type ProjectSummaryDTO, type SavedSelection } from "@/lib/client-types";
@@ -83,11 +84,9 @@ export function ComicViewer({
     let cancelled = false;
     (async () => {
       try {
-        const [c, sels] = await Promise.all([
-          api<ComicDetail>(`/api/comics/${comicId}`),
-          api<SavedSelection[]>(`/api/selections?comicId=${comicId}`),
-        ]);
+        const [c, sels] = await Promise.all([getComic(comicId), listSelections({ comicId })]);
         if (cancelled) return;
+        if (!c) throw new Error("Este cómic no existe en este navegador. Puede que se haya borrado.");
         setComic(c);
         setSaved(sels);
         setPageIdx((i) => Math.min(Math.max(0, i), Math.max(0, c.pages.length - 1)));
@@ -127,7 +126,7 @@ export function ComicViewer({
   const commitRegion = async (key: string, rect: NormRect) => {
     if (!key.startsWith("s:")) return;
     try {
-      const updated = await api<SavedSelection>(`/api/selections/${key.slice(2)}`, { method: "PATCH", body: JSON.stringify({ rect }) });
+      const updated = await updateSelection(key.slice(2), { rect });
       setSaved((ss) => ss.map((x) => (x.id === updated.id ? updated : x)));
     } catch (err) {
       toast.error("No se ha podido actualizar la viñeta", { description: (err as Error).message });
@@ -148,10 +147,7 @@ export function ComicViewer({
     if (key.startsWith("s:")) return saved.find((x) => x.id === key.slice(2)) ?? null;
     const region = (drafts[page.id] ?? []).find((r) => r.key === key);
     if (!region) return null;
-    const sel = await api<SavedSelection>("/api/selections", {
-      method: "POST",
-      body: JSON.stringify({ pageId: page.id, rect: region.rect, label: region.label }),
-    });
+    const sel = await createSelection({ pageId: page.id, rect: region.rect, label: region.label });
     setSaved((ss) => [...ss, sel]);
     setDrafts((d) => ({ ...d, [page.id]: (d[page.id] ?? []).filter((r) => r.key !== key) }));
     const newKey = `s:${sel.id}`;
@@ -185,7 +181,7 @@ export function ComicViewer({
     } else {
       const removed = saved.find((x) => x.id === key.slice(2));
       try {
-        await api(`/api/selections/${key.slice(2)}`, { method: "DELETE" });
+        await deleteSelection(key.slice(2));
         setSaved((ss) => ss.filter((x) => x.id !== key.slice(2)));
         // Se puede recuperar durante unos segundos (se vuelve a crear con la misma región y nombre).
         toast.success("Viñeta eliminada de la biblioteca", {
@@ -195,10 +191,7 @@ export function ComicViewer({
                 label: "Deshacer",
                 onClick: async () => {
                   try {
-                    const restored = await api<SavedSelection>("/api/selections", {
-                      method: "POST",
-                      body: JSON.stringify({ pageId: removed.pageId, rect: removed.rect, label: removed.label }),
-                    });
+                    const restored = await createSelection({ pageId: removed.pageId, rect: removed.rect, label: removed.label });
                     setSaved((ss) => [...ss, restored]);
                   } catch (err) {
                     toast.error("No se ha podido recuperar la viñeta", { description: (err as Error).message });
@@ -223,7 +216,7 @@ export function ComicViewer({
     let n = 0;
     for (const [pageId, list] of Object.entries(drafts)) {
       for (const r of list) {
-        const sel = await api<SavedSelection>("/api/selections", { method: "POST", body: JSON.stringify({ pageId, rect: r.rect, label: r.label }) });
+        const sel = await createSelection({ pageId, rect: r.rect, label: r.label });
         setSaved((ss) => [...ss, sel]);
         n++;
       }
@@ -305,7 +298,7 @@ export function ComicViewer({
   };
   const commitLabel = async (key: string, label: string) => {
     if (!key.startsWith("s:")) return;
-    await api(`/api/selections/${key.slice(2)}`, { method: "PATCH", body: JSON.stringify({ label }) }).catch(() => undefined);
+    await updateSelection(key.slice(2), { label }).catch(() => undefined);
   };
 
   /* ----------------------------- Inserción ----------------------------- */
@@ -314,7 +307,7 @@ export function ComicViewer({
   const loadProjects = async () => {
     if (projects) return;
     try {
-      setProjects(await api<ProjectSummaryDTO[]>("/api/projects"));
+      setProjects(await listProjects());
     } catch {
       setProjects([]);
     }
@@ -330,13 +323,10 @@ export function ComicViewer({
     try {
       setBusy(true);
       for (const s of sources) {
-        await api(`/api/projects/${projectId}/insert`, {
-          method: "POST",
-          body: JSON.stringify({ pageId: s.pageId, selectionId: s.selectionId, rect: s.crop }),
-        });
+        await appendImageToProject(projectId, s);
       }
       toast.success(sources.length === 1 ? "Imagen añadida al examen" : `${sources.length} imágenes añadidas al examen`, {
-        action: { label: "Abrir examen", onClick: () => router.push(`/editor/${projectId}`) },
+        action: { label: "Abrir examen", onClick: () => router.push(`/editor?id=${projectId}`) },
       });
     } catch (err) {
       toast.error((err as Error).message);

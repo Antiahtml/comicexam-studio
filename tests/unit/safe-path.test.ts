@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hasImageExtension, isIgnorableEntry, isSafeEntryName } from "@/lib/archive/safe-path";
 import { detectArchive, detectImage } from "@/lib/archive/detect";
-import { dataPath } from "@/lib/storage";
 
 describe("seguridad de rutas (Zip Slip / path traversal)", () => {
   it.each(["../evil.jpg", "a/../../evil.jpg", "/etc/passwd", "C:\\Windows\\evil.jpg", "a\\..\\..\\b.jpg", "bad\0name.jpg", ""])("rechaza %j", (name) => {
@@ -24,11 +23,6 @@ describe("seguridad de rutas (Zip Slip / path traversal)", () => {
     expect(hasImageExtension("ComicInfo.xml")).toBe(false);
   });
 
-  it("no permite salir del directorio de datos", () => {
-    expect(() => dataPath("../fuera")).toThrow();
-    expect(() => dataPath("comics/../../fuera")).toThrow();
-    expect(dataPath("comics/abc")).toContain("comics");
-  });
 });
 
 describe("detección del tipo real de archivo", () => {

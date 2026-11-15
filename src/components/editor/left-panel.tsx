@@ -47,7 +47,8 @@ import { ImportDropzone, ImportTasks } from "@/components/comics/import-dropzone
 import { useComics } from "@/components/comics/library-view";
 import { useComicImport } from "@/hooks/use-comic-import";
 import { DocumentSettings } from "./document-settings";
-import { api, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { getComic, listSelections, onDataChange } from "@/lib/local/repo";
 import { cropUrl, pageImageUrl } from "@/lib/images/urls";
 import { createFromTemplate, DND_IMAGE, DND_TEMPLATE, type ElementTemplate } from "@/lib/document/templates";
 import { pageToSource, selectionToSource, type ComicDetail, type ComicSummary, type SavedSelection } from "@/lib/client-types";
@@ -179,7 +180,7 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
   useEffect(() => {
     if (!openComic) return;
     let cancelled = false;
-    api<ComicDetail>(`/api/comics/${openComic.id}`)
+    getComic(openComic.id)
       .then((d) => !cancelled && setLoaded(d))
       .catch((e) => toast.error(e.message));
     return () => {
@@ -288,14 +289,18 @@ function PanelsTab() {
   const [filter, setFilter] = useState("all");
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const load = useCallback(() => {
-    api<SavedSelection[]>("/api/selections")
+    listSelections()
       .then(setItems)
       .catch(() => setItems([]));
   }, []);
   useEffect(() => {
     load();
     window.addEventListener(SELECTIONS_CHANGED, load);
-    return () => window.removeEventListener(SELECTIONS_CHANGED, load);
+    const off = onDataChange("selections", load);
+    return () => {
+      window.removeEventListener(SELECTIONS_CHANGED, load);
+      off();
+    };
   }, [load]);
 
   const comics = useMemo(() => {
@@ -476,8 +481,8 @@ function UploadsTab() {
   const collections = useMemo(() => (comics ?? []).filter((c) => c.format === "images" && c.status === "ready"), [comics]);
   useEffect(() => {
     let cancelled = false;
-    Promise.all(collections.map((c) => api<ComicDetail>(`/api/comics/${c.id}`)))
-      .then((ds) => !cancelled && setPages(ds.flatMap((d) => d.pages.map((p) => ({ comic: d, page: p })))))
+    Promise.all(collections.map((c) => getComic(c.id)))
+      .then((ds) => !cancelled && setPages((ds.filter(Boolean) as ComicDetail[]).flatMap((d) => d.pages.map((p) => ({ comic: d, page: p })))))
       .catch(() => setPages([]));
     return () => {
       cancelled = true;

@@ -12,7 +12,9 @@ import { Input } from "@/components/ui/input";
 import { useConfirm } from "@/components/ui/confirm";
 import { ImportDropzone, ImportTasks } from "./import-dropzone";
 import { useComicImport } from "@/hooks/use-comic-import";
-import { api, formatBytes, relativeTime } from "@/lib/utils";
+import { formatBytes, relativeTime } from "@/lib/utils";
+import { deleteComic, listComics, onDataChange, projectsUsingComic, renameComic, storageEstimate } from "@/lib/local/repo";
+import { recoverStaleImports } from "@/lib/local/import-service";
 import { pageImageUrl } from "@/lib/images/urls";
 import type { ComicSummary } from "@/lib/client-types";
 
@@ -22,7 +24,7 @@ export function useComics() {
   const [comics, setComics] = useState<ComicSummary[] | null>(null);
   const reload = useCallback(async () => {
     try {
-      setComics(await api<ComicSummary[]>("/api/comics"));
+      setComics(await listComics());
     } catch (err) {
       toast.error("No se ha podido cargar la biblioteca", { description: (err as Error).message });
       setComics((c) => c ?? []);
@@ -30,21 +32,43 @@ export function useComics() {
   }, []);
   useEffect(() => {
     let alive = true;
-    api<ComicSummary[]>("/api/comics")
+    void recoverStaleImports()
+      .then(() => listComics())
       .then((c) => alive && setComics(c))
       .catch(() => alive && setComics((c) => c ?? []));
+    const off = onDataChange("comics", () => void listComics().then((c) => alive && setComics(c)));
     return () => {
       alive = false;
+      off();
     };
   }, []);
-  // Mientras haya importaciones en curso, se refresca periódicamente.
+  // Mientras haya importaciones en curso, se refresca el progreso.
   const processing = comics?.some((c) => c.status === "processing");
   useEffect(() => {
     if (!processing) return;
-    const t = setInterval(reload, 1200);
+    const t = setInterval(reload, 1000);
     return () => clearInterval(t);
   }, [processing, reload]);
   return { comics, reload, setComics };
+}
+
+/** Espacio que ocupan los datos de la aplicación en este navegador. */
+function StorageInfo({ refreshKey }: { refreshKey: number }) {
+  const [est, setEst] = useState<{ usage: number; quota: number } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void storageEstimate().then((e) => alive && setEst(e));
+    return () => {
+      alive = false;
+    };
+  }, [refreshKey]);
+  if (!est) return null;
+  return (
+    <p className="text-xs text-muted-foreground">
+      Espacio usado en este navegador: <strong>{formatBytes(est.usage)}</strong>
+      {est.quota > 0 && <> de {formatBytes(est.quota)} disponibles</>}
+    </p>
+  );
 }
 
 export function LibraryView() {
@@ -55,12 +79,7 @@ export function LibraryView() {
   const [newTitle, setNewTitle] = useState("");
 
   const remove = async (c: ComicSummary) => {
-    let usedBy: { id: string; name: string }[] = [];
-    try {
-      usedBy = (await api<{ usedBy: { id: string; name: string }[] }>(`/api/comics/${c.id}/usage`)).usedBy;
-    } catch {
-      /* si falla la consulta, el servidor vuelve a comprobarlo al borrar */
-    }
+    const usedBy = await projectsUsingComic(c.id).catch(() => [] as { id: string; name: string }[]);
     const ok = await confirm({
       title: `¿Eliminar «${c.title}»?`,
       description:
@@ -85,7 +104,7 @@ export function LibraryView() {
     });
     if (!ok) return;
     try {
-      await api(`/api/comics/${c.id}${usedBy.length > 0 ? "?force=1" : ""}`, { method: "DELETE" });
+      await deleteComic(c.id, { force: usedBy.length > 0 });
       toast.success("Cómic eliminado");
       void reload();
     } catch (err) {
@@ -97,7 +116,7 @@ export function LibraryView() {
   const rename = async () => {
     if (!renaming || !newTitle.trim()) return;
     try {
-      await api(`/api/comics/${renaming.id}`, { method: "PATCH", body: JSON.stringify({ title: newTitle.trim() }) });
+      await renameComic(renaming.id, newTitle.trim());
       setRenaming(null);
       void reload();
     } catch (err) {
@@ -111,6 +130,7 @@ export function LibraryView() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Biblioteca de cómics</h1>
           <p className="text-sm text-muted-foreground">Importa tus cómics, ábrelos en el visor y selecciona las viñetas para tus exámenes.</p>
+          <StorageInfo refreshKey={comics?.length ?? 0} />
         </div>
       </div>
 
@@ -122,7 +142,8 @@ export function LibraryView() {
             <div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
               <p className="mb-2 font-medium text-foreground">Consejos</p>
               <ul className="list-disc space-y-1 pl-4">
-                <li>Los archivos se procesan en tu ordenador: nunca se suben a Internet.</li>
+                <li>Los archivos se procesan en tu navegador: nunca se suben a Internet.</li>
+                <li>Se guardan solo en este navegador. Para llevarte un examen a otro equipo, expórtalo (.comicexam).</li>
                 <li>Se admiten CBR (RAR 4 y RAR 5) y CBZ (ZIP).</li>
                 <li>Las páginas se ordenan por nombre de forma natural (2 antes que 10).</li>
               </ul>
@@ -146,7 +167,7 @@ export function LibraryView() {
           {comics.map((c) => (
             <li key={c.id} className="group relative" data-testid="comic-card">
               <Link
-                href={c.status === "ready" ? `/visor/${c.id}` : "#"}
+                href={c.status === "ready" ? `/visor?id=${c.id}` : "#"}
                 aria-disabled={c.status !== "ready"}
                 className="block overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
@@ -199,7 +220,7 @@ export function LibraryView() {
                 <DropdownMenuContent align="end">
                   {c.status === "ready" && (
                     <DropdownMenuItem asChild>
-                      <Link href={`/visor/${c.id}`}>
+                      <Link href={`/visor?id=${c.id}`}>
                         <BookImage /> Abrir en el visor
                       </Link>
                     </DropdownMenuItem>

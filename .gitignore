@@ -3,6 +3,8 @@ node_modules
 node_modules.nosync
 .next
 .next.nosync
+out.nosync
+out
 next-env.d.ts
 *.tsbuildinfo
 
@@ -23,3 +25,6 @@ fixtures/*.cbz
 .env.local
 .claude
 .DS_Store
+
+# Copias de seguridad locales de exámenes
+copias-de-seguridad

@@ -1,12 +1,13 @@
 import type { ImageSource } from "../document/types";
 import type { NormRect } from "../regions/coords";
+import { withBase } from "../env";
 
-/** URLs de imágenes compartidas entre cliente y servidor. */
+/** URLs de imágenes. Las sirve el service worker (public/sw.js) desde la base de datos del navegador. */
 
 export type PageVariant = "thumb" | "preview" | "original";
 
 export function pageImageUrl(pageId: string, variant: PageVariant = "preview"): string {
-  return `/api/media/page/${encodeURIComponent(pageId)}?v=${variant}`;
+  return withBase(`/media/page/${encodeURIComponent(pageId)}?v=${variant}`);
 }
 
 const r4 = (n: number) => Math.round(n * 1e5) / 1e5;
@@ -26,7 +27,7 @@ export function cropUrl(pageId: string, rect: NormRect, quality: "screen" | "pri
   if (quality === "print" && isFullRect(rect)) return pageImageUrl(pageId, "original");
   const max = quality === "print" ? 0 : quality === "thumb" ? 360 : 1400;
   const r = [rect.x, rect.y, rect.w, rect.h].map(r4).join(",");
-  return `/api/media/crop/${encodeURIComponent(pageId)}?r=${r}&max=${max}`;
+  return withBase(`/media/crop/${encodeURIComponent(pageId)}?r=${r}&max=${max}`);
 }
 
 export function sourceUrl(src: ImageSource, quality: "screen" | "print" | "thumb" = "screen"): string {
