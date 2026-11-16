@@ -582,7 +582,7 @@ export function ComicViewer({
                 data-page-index={i}
                 className={cn(
                   "group relative cursor-pointer overflow-hidden rounded-md border-2 bg-muted transition-colors",
-                  i === pageIdx ? "border-primary" : "border-transparent hover:border-primary/40",
+                  i === pageIdx ? "border-selection" : "border-transparent hover:border-selection/40",
                   checkedPages.has(i) && "ring-2 ring-comic ring-offset-1",
                 )}
                 onClick={(e) => (e.shiftKey || e.metaKey || e.ctrlKey ? toggleCheck(i, e) : goTo(i))}
@@ -659,7 +659,7 @@ export function ComicViewer({
               size="sm"
               onClick={() => setTool("select")}
               data-testid="tool-select-panel"
-              className={cn(tool === "select" && "ring-1 ring-primary/30")}
+              className={cn(tool === "select" && "ring-1 ring-selection/30")}
             >
               <SquareDashedMousePointer /> Seleccionar viñeta
             </Button>
@@ -783,14 +783,14 @@ export function ComicViewer({
             regions.map((r, i) => (
               <div
                 key={r.key}
-                className={cn("rounded-lg border bg-background p-2 transition-colors", r.key === activeKey && "border-primary ring-2 ring-primary/20")}
+                className={cn("rounded-lg border bg-background p-2 transition-colors", r.key === activeKey && "border-selection ring-2 ring-selection/20")}
                 onClick={() => setActiveKey(r.key)}
                 data-testid="region-card"
               >
                 <div className="mb-2 flex items-center gap-2">
                   <input
                     type="checkbox"
-                    className="size-4 accent-indigo-600"
+                    className="size-4 accent-selection"
                     checked={checkedRegions.has(r.key)}
                     onClick={(e) => e.stopPropagation()}
                     onChange={() =>

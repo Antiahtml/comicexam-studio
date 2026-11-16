@@ -130,7 +130,7 @@ export function LibraryView() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Biblioteca de cómics</h1>
+          <h1 className="text-display mb-2 text-4xl sm:text-5xl">Biblioteca de cómics</h1>
           <p className="text-sm text-muted-foreground">Importa tus cómics, ábrelos en el visor y selecciona las viñetas para tus exámenes.</p>
           <StorageInfo refreshKey={comics?.length ?? 0} />
         </div>

@@ -9,18 +9,20 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 active:bg-primary/85",
+        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/85 active:bg-primary/75",
         comic: "bg-comic text-white shadow-xs hover:bg-comic/90 active:bg-comic/85",
         destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90 active:bg-destructive/85",
         outline: "border border-border bg-card shadow-xs hover:bg-muted active:bg-secondary",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70 active:bg-secondary",
         ghost: "hover:bg-muted hover:text-foreground active:bg-secondary",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-foreground underline underline-offset-4 hover:text-foreground/70",
+        // Botón de cristal (CTA secundario): borde especular, sombra amplia y brillo que se desliza al pasar el ratón.
+        glass: "glass glass-hover bg-[image:var(--glass-sheen)] bg-[length:300%_300%] bg-[position:50%_0] text-foreground duration-500 [transition-property:background-position,box-shadow,translate,scale] hover:bg-[position:50%_70%]",
       },
       size: {
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md gap-1.5 px-3 text-xs",
-        lg: "h-10 rounded-md px-6",
+        lg: "h-12 rounded-full px-8 text-[15px]",
         icon: "size-9",
         iconSm: "size-7 rounded-md",
       },

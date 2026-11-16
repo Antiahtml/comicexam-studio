@@ -13,7 +13,7 @@ export function Switch({ className, ...props }: React.ComponentProps<typeof Swit
       )}
       {...props}
     >
-      <SwitchPrimitive.Thumb className="pointer-events-none block size-4 rounded-full bg-white shadow-sm ring-0 transition-transform duration-300 data-[state=checked]:translate-x-[calc(100%)] data-[state=unchecked]:translate-x-0.5" />
+      <SwitchPrimitive.Thumb className="pointer-events-none block size-4 rounded-full bg-card shadow-sm ring-0 transition-transform duration-300 data-[state=checked]:translate-x-[calc(100%)] data-[state=unchecked]:translate-x-0.5" />
     </SwitchPrimitive.Root>
   );
 }
@@ -30,9 +30,9 @@ export function Badge({ className, variant = "default", ...props }: React.Compon
   const styles = {
     default: "bg-secondary text-secondary-foreground",
     muted: "bg-muted text-muted-foreground",
-    warning: "bg-amber-100 text-amber-800",
-    error: "bg-red-100 text-red-700",
-    success: "bg-green-100 text-green-700",
+    warning: "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300",
+    error: "bg-red-100 text-red-700 dark:bg-red-400/15 dark:text-red-300",
+    success: "bg-green-100 text-green-700 dark:bg-green-400/15 dark:text-green-300",
   }[variant];
   return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-medium", styles, className)} {...props} />;
 }
@@ -48,7 +48,7 @@ export function PopoverContent({ className, sideOffset = 6, ...props }: React.Co
     <P.Portal>
       <P.Content
         sideOffset={sideOffset}
-        className={cn("z-50 rounded-xl border border-black/5 bg-popover p-3 shadow-lg outline-none origin-(--radix-popover-content-transform-origin) data-[state=open]:animate-materialize-in data-[state=closed]:animate-materialize-out", className)}
+        className={cn("glass-panel z-50 rounded-2xl border border-border p-3 outline-none origin-(--radix-popover-content-transform-origin) data-[state=open]:animate-materialize-in data-[state=closed]:animate-materialize-out", className)}
         {...props}
       />
     </P.Portal>

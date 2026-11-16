@@ -29,8 +29,8 @@ const Thumb = memo(function Thumb({ page, index, ctx, active }: { page: ExamPage
     >
       <button
         className={cn(
-          "relative overflow-hidden rounded-sm bg-white shadow-sm ring-1 ring-slate-300 transition-all hover:ring-primary/60",
-          active && "ring-2 ring-primary",
+          "relative overflow-hidden rounded-sm bg-white shadow-sm ring-1 ring-slate-300 transition-all hover:ring-selection/60",
+          active && "ring-2 ring-selection",
         )}
         style={{ width: THUMB_W, height: (height / width) * THUMB_W }}
         onClick={() => {
@@ -43,7 +43,7 @@ const Thumb = memo(function Thumb({ page, index, ctx, active }: { page: ExamPage
           <PageSurface doc={ctx.doc} page={page} pageIndex={index} ctx={ctx} />
         </div>
       </button>
-      <span className={cn("text-2xs font-medium text-muted-foreground", active && "text-primary")}>{index + 1}</span>
+      <span className={cn("text-2xs font-medium text-muted-foreground", active && "text-foreground")}>{index + 1}</span>
     </div>
   );
 });
@@ -75,7 +75,7 @@ export function PageStrip() {
       </DndContext>
       <button
         onClick={() => useEditor.getState().addPage(doc.pages.length - 1)}
-        className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-sm border-2 border-dashed border-slate-300 text-muted-foreground hover:border-primary hover:text-primary"
+        className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-sm border-2 border-dashed border-slate-300 text-muted-foreground hover:border-primary hover:text-foreground"
         style={{ width: THUMB_W, height: (pageSize(doc.settings.orientation).height / pageSize(doc.settings.orientation).width) * THUMB_W }}
         aria-label="Añadir hoja"
       >

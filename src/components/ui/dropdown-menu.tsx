@@ -13,7 +13,7 @@ export function DropdownMenuContent({ className, sideOffset = 4, ...props }: Rea
       <DM.Content
         sideOffset={sideOffset}
         className={cn(
-          "z-50 min-w-44 overflow-hidden rounded-xl border border-black/5 bg-popover p-1 text-popover-foreground shadow-lg origin-(--radix-dropdown-menu-content-transform-origin) data-[state=open]:animate-materialize-in data-[state=closed]:animate-materialize-out",
+          "glass-panel z-50 min-w-44 overflow-hidden rounded-2xl border border-border p-1.5 text-popover-foreground shadow-lg origin-(--radix-dropdown-menu-content-transform-origin) data-[state=open]:animate-materialize-in data-[state=closed]:animate-materialize-out",
           className,
         )}
         {...props}
@@ -30,7 +30,7 @@ export function DropdownMenuItem({
   return (
     <DM.Item
       className={cn(
-        "relative flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none select-none active:bg-secondary data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted [&_svg]:size-4 [&_svg]:text-muted-foreground",
+        "relative flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none active:bg-secondary data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-foreground/[0.06] [&_svg]:size-4 [&_svg]:text-muted-foreground",
         variant === "destructive" && "text-destructive data-[highlighted]:bg-destructive/10 [&_svg]:!text-destructive",
         className,
       )}

@@ -396,7 +396,7 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
     const clipped = overflowing.has(el.id);
     const editing = editingId === el.id && el.type === "text";
     const outline = selected
-      ? `${2 / zoom}px solid #4f46e5`
+      ? `${2 / zoom}px solid var(--selection)`
       : outside
         ? `${1.5 / zoom}px dashed #dc2626`
         : overlap || clipped
@@ -449,7 +449,7 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
               <span
                 key={h}
                 data-handle={h}
-                className="absolute rounded-[2px] border border-primary bg-white shadow-sm"
+                className="absolute rounded-[2px] border border-selection bg-white shadow-sm"
                 style={{
                   width: hs,
                   height: hs,
@@ -464,7 +464,7 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
               <span
                 data-handle="rotate"
                 title="Girar (Mayús: de 15 en 15°)"
-                className="absolute rounded-full border border-primary bg-white shadow-sm"
+                className="absolute rounded-full border border-selection bg-white shadow-sm"
                 style={{ width: hs * 1.3, height: hs * 1.3, borderWidth: 1.5 / zoom, left: `calc(50% - ${(hs * 1.3) / 2}px)`, top: -hs * 3.2, cursor: "grab" }}
               />
             )}
@@ -514,8 +514,8 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
           )}
           {marquee && (
             <div
-              className="pointer-events-none absolute bg-primary/10"
-              style={{ left: `${marquee.x}mm`, top: `${marquee.y}mm`, width: `${marquee.w}mm`, height: `${marquee.h}mm`, outline: `${1 / zoom}px solid #4f46e5` }}
+              className="pointer-events-none absolute bg-selection/10"
+              style={{ left: `${marquee.x}mm`, top: `${marquee.y}mm`, width: `${marquee.w}mm`, height: `${marquee.h}mm`, outline: `${1 / zoom}px solid var(--selection)` }}
             />
           )}
         </PageSurface>

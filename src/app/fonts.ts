@@ -1,5 +1,7 @@
 /* Fuentes locales (sin servicios externos). Se usan en la interfaz, el editor y el PDF. */
 import "@fontsource-variable/inter/opsz.css";
+import "@fontsource-variable/source-serif-4/opsz.css";
+import "@fontsource-variable/source-serif-4/opsz-italic.css";
 import "@fontsource/atkinson-hyperlegible/400.css";
 import "@fontsource/atkinson-hyperlegible/700.css";
 import "@fontsource/atkinson-hyperlegible/400-italic.css";

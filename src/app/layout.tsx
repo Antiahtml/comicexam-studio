@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { Providers } from "@/components/layout/providers";
 import { AppBoot } from "@/components/layout/app-boot";
 import { BASE_PATH } from "@/lib/env";
+import { themeInitScript } from "@/components/layout/theme";
 
 export const metadata: Metadata = {
   title: "ComicExam Studio",
@@ -14,7 +15,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
         <Providers>
           <AppBoot>{children}</AppBoot>

@@ -4,42 +4,107 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Paleta neutra (grises sin tinte azul) con un único acento: el índigo de la marca.
- * El ámbar «cómic» queda reservado a la identidad (logo, rótulos), no a la interfaz.
+ * Estilo «papel + cristal» (referencia: craft.do, ver docs/estilo-craft.md).
+ * Fondo beige cálido, tinta casi negra con matiz cálido y un único acento sobrio: el azul petróleo
+ * queda solo para foco, selección y detalles; el botón principal es negro. El ámbar «cómic» se
+ * reserva a la identidad (logo, rótulos), no a la interfaz.
  */
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
-  --background: #f5f5f7;
-  --foreground: #1d1d1f;
+  --background: #fcf9f7;
+  --foreground: #030302;
   --card: #ffffff;
-  --card-foreground: #1d1d1f;
+  --card-foreground: #030302;
   --popover: #ffffff;
-  --popover-foreground: #1d1d1f;
-  --primary: #4f46e5;
+  --popover-foreground: #030302;
+  --primary: #030302;
   --primary-foreground: #ffffff;
-  /* Relleno neutro para estados activos/seleccionados (como los controles de macOS). */
-  --secondary: #ebebef;
-  --secondary-foreground: #1d1d1f;
-  --muted: #f0f0f3;
-  --muted-foreground: #6e6e73;
-  --accent: #fef3c7;
-  --accent-foreground: #92400e;
+  /* Relleno cálido para estados activos/seleccionados. */
+  --secondary: #f2eeea;
+  --secondary-foreground: #030302;
+  --muted: #f6f2ee;
+  --muted-foreground: #6b6865;
+  --accent: #fde99b;
+  --accent-foreground: #5c4300;
   --comic: #f59e0b;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --success: #16a34a;
-  --border: #e5e5ea;
-  --input: #d2d2d7;
-  --ring: #6366f1;
-  --canvas: #e8e8ed;
+  --border: #03030217;
+  --input: #0303022e;
+  --ring: #427e8a;
+  --canvas: #ede8e3;
+  /* Color de selección en el lienzo del editor (antes índigo). */
+  --selection: #427e8a;
 
-  /* Material translúcido para barras flotantes. */
-  --material: rgb(255 255 255 / 0.72);
-  --material-edge: rgb(0 0 0 / 0.06);
+  /* Material translúcido para barras planas (editor). */
+  --material: rgb(252 249 247 / 0.72);
+  --material-edge: rgb(3 3 2 / 0.07);
+
+  /* Cristal: relleno degradado, borde especular, sombra y desenfoque. */
+  --glass-fill: linear-gradient(180deg, #fff6 10%, #fffc);
+  --glass-edge: rgb(255 255 255 / 0.64);
+  --glass-shadow: 0 12px 12px 2px #0000001a, 0 2px 4px -1px #0000000f;
+  --glass-shadow-hover: 0 20px 25px 4px #0000001a, 0 10px 10px -5px #0000000a;
+  --glass-sheen: linear-gradient(180deg, #fff9, #ffffff96 25%, #fff9 50%, #ffffffd6 75%);
+  --glass-blur: 4px;
+  --glass-blur-strong: 12px;
+}
+
+/* Modo oscuro propio (la referencia no lo tiene): negro cálido, cristal invertido y elevación por luminosidad. */
+.dark {
+  color-scheme: dark;
+  --background: #0b0a09;
+  --foreground: #f5f2ee;
+  --card: #161513;
+  --card-foreground: #f5f2ee;
+  --popover: #1c1b19;
+  --popover-foreground: #f5f2ee;
+  --primary: #f5f2ee;
+  --primary-foreground: #0b0a09;
+  --secondary: #24221f;
+  --secondary-foreground: #f5f2ee;
+  --muted: #1c1b19;
+  --muted-foreground: #a29e98;
+  --accent: #3a2f0c;
+  --accent-foreground: #fde99b;
+  --destructive: #f87171;
+  --success: #4ade80;
+  --border: #ffffff1f;
+  --input: #ffffff33;
+  --ring: #6fb0bd;
+  --canvas: #050504;
+  --selection: #6fb0bd;
+
+  --material: rgb(22 21 19 / 0.72);
+  --material-edge: rgb(255 255 255 / 0.08);
+
+  --glass-fill: linear-gradient(180deg, #ffffff1f 10%, #ffffff0d);
+  --glass-edge: rgb(255 255 255 / 0.3);
+  --glass-shadow: 0 12px 24px 0 #00000080, 0 2px 4px 0 #00000066;
+  --glass-shadow-hover: 0 20px 32px 2px #00000099, 0 6px 10px -4px #00000080;
+  --glass-sheen: linear-gradient(180deg, #ffffff2e, #ffffff17 25%, #ffffff2e 50%, #ffffff40 75%);
+  --glass-blur: 8px;
+  --glass-blur-strong: 16px;
+
+  /* Los grises «slate» fijos del código se invierten para que sigan siendo legibles. */
+  --color-slate-50: #161513;
+  --color-slate-100: #1c1b19;
+  --color-slate-200: #2a2825;
+  --color-slate-300: #3a3733;
+  --color-slate-400: #6b6762;
+  --color-slate-500: #8a8680;
+  --color-slate-600: #a29e98;
+  --color-slate-700: #c4c0ba;
+  --color-slate-800: #e2ded8;
+  --color-slate-900: #f5f2ee;
+  --color-slate-950: #fcf9f7;
 }
 
 @theme inline {
   --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;
   --font-comic: "Bangers", Impact, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -63,6 +128,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-canvas: var(--canvas);
+  --color-selection: var(--selection);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -128,17 +194,104 @@
   --shadow-xl: 0 4px 10px rgb(0 0 0 / 0.05), 0 20px 48px rgb(0 0 0 / 0.12);
   --shadow-2xl: 0 8px 20px rgb(0 0 0 / 0.06), 0 32px 72px rgb(0 0 0 / 0.16);
 
-  /* Movimiento: una sola curva de salida, rápida al principio y suave al asentarse. */
+  /* Movimiento: salida rápida y suave al asentarse; el cristal usa el ease estándar de la referencia. */
   --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-glass: cubic-bezier(0.4, 0, 0.2, 1);
   --default-transition-duration: 180ms;
   --default-transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* Barra translúcida: el contenido se intuye por debajo sin restar legibilidad. */
+/* Barra translúcida plana: el contenido se intuye por debajo sin restar legibilidad. */
 @utility material {
   background-color: var(--material);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
+}
+
+/*
+ * Cristal: desenfoque ligero + degradado translúcido + borde especular de 1px + sombra suave.
+ * El brillo del borde está arriba y abajo; el centro queda transparente.
+ */
+@utility glass {
+  position: relative;
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow);
+  transition:
+    backdrop-filter 100ms var(--ease-glass),
+    box-shadow 500ms var(--ease-glass),
+    translate 200ms var(--ease-glass),
+    scale 200ms var(--ease-glass);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(var(--glass-edge) 40%, transparent 75%, transparent 95%, var(--glass-edge));
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box exclude,
+      linear-gradient(#fff 0 0);
+    transition: opacity 500ms ease-in-out;
+  }
+}
+@utility glass-strong {
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+  backdrop-filter: blur(var(--glass-blur-strong));
+}
+@utility glass-hover {
+  &:hover {
+    box-shadow: var(--glass-shadow-hover);
+  }
+}
+
+/* Superficie de cristal para menús y diálogos: más opaca para no perder legibilidad. */
+@utility glass-panel {
+  position: relative;
+  background-color: color-mix(in oklab, var(--popover) 78%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(140%);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Titular editorial: serif de peso 400, interletrado negativo e interlineado ajustado. */
+@utility text-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  font-optical-sizing: auto;
+}
+@utility text-headline {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  font-optical-sizing: auto;
+}
+
+/* Fondo cálido con manchas de color suaves: da algo que desenfocar detrás del cristal. */
+@utility app-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 36rem at 8% -6%, rgb(150 200 230 / 0.5), transparent 70%),
+    radial-gradient(48rem 30rem at 96% 4%, rgb(253 233 155 / 0.5), transparent 70%),
+    radial-gradient(52rem 30rem at 50% 108%, rgb(155 216 169 / 0.35), transparent 70%);
+  .dark & {
+    background:
+      radial-gradient(60rem 36rem at 8% -6%, rgb(66 126 138 / 0.28), transparent 70%),
+      radial-gradient(48rem 30rem at 96% 4%, rgb(120 90 20 / 0.2), transparent 70%),
+      radial-gradient(52rem 30rem at 50% 108%, rgb(50 100 70 / 0.2), transparent 70%);
+  }
 }
 
 /*
@@ -171,9 +324,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Solo <html> lleva el fondo: así el degradado fijo (z-index negativo) queda visible bajo el contenido. */
+  html {
+    @apply bg-background;
+  }
   html,
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
     font-family: var(--font-sans);
     font-optical-sizing: auto;
     text-rendering: optimizeLegibility;
@@ -187,12 +344,12 @@
 /* Barra de desplazamiento discreta en paneles */
 .thin-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #c7c7cc transparent;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 25%, transparent) transparent;
 }
 
 /* Patrón de puntos tipo cómic para fondos decorativos */
 .comic-dots {
-  background-image: radial-gradient(rgba(79, 70, 229, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 7%, transparent) 1px, transparent 1px);
   background-size: 14px 14px;
 }
 
@@ -227,30 +384,57 @@
     --materialize-scale: 1 !important;
     --materialize-scale-out: 1 !important;
   }
+  .glass {
+    transition-property: backdrop-filter, box-shadow;
+  }
 }
 
 /* Menos transparencia: las barras pasan a ser opacas. */
 @media (prefers-reduced-transparency: reduce) {
-  :root {
+  :root,
+  .dark {
     --material: var(--card);
+    --glass-fill: linear-gradient(var(--card), var(--card));
+    --glass-blur: 0px;
+    --glass-blur-strong: 0px;
   }
-  .material {
+  .material,
+  .glass,
+  .glass-strong,
+  .glass-panel {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+  }
+  .glass-panel {
+    background-color: var(--popover);
   }
 }
 
 /* Más contraste: bordes visibles y texto secundario más oscuro. */
 @media (prefers-contrast: more) {
   :root {
-    --border: #a1a1a6;
-    --input: #8e8e93;
-    --muted-foreground: #3a3a3c;
+    --border: #6b6865;
+    --input: #4a4845;
+    --muted-foreground: #3a3836;
     --material: var(--card);
+    --glass-fill: linear-gradient(var(--card), var(--card));
   }
-  .material {
+  .dark {
+    --border: #a29e98;
+    --input: #c4c0ba;
+    --muted-foreground: #d6d2cc;
+    --material: var(--card);
+    --glass-fill: linear-gradient(var(--card), var(--card));
+  }
+  .material,
+  .glass,
+  .glass-strong,
+  .glass-panel {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+  }
+  .glass-panel {
+    background-color: var(--popover);
   }
 }
 

@@ -371,7 +371,7 @@ function PanelsTab() {
                   </button>
                   <input
                     type="checkbox"
-                    className={cn("absolute top-1 right-1 size-4 accent-indigo-600", !checked.has(s.id) && "hover-reveal")}
+                    className={cn("absolute top-1 right-1 size-4 accent-selection", !checked.has(s.id) && "hover-reveal")}
                     checked={checked.has(s.id)}
                     onChange={() =>
                       setChecked((c) => {

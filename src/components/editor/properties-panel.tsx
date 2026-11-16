@@ -577,7 +577,7 @@ function ImageProps({ el }: { el: ImageElement }) {
             max={100}
             value={Math.round(el.opacity * 100)}
             onChange={(e) => st.updateElement<ImageElement>(el.id, { opacity: Number(e.target.value) / 100 }, "op")}
-            className="w-full accent-indigo-600"
+            className="w-full accent-selection"
           />
         </Field>
         <Field label="Pie de imagen">

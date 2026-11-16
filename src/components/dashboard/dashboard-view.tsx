@@ -151,15 +151,15 @@ export function DashboardView() {
   return (
     <div className="space-y-14">
       {/* Cabecera */}
-      <section className="comic-dots relative overflow-hidden rounded-2xl bg-card px-6 py-10 shadow-sm sm:px-12 sm:py-14">
+      <section className="relative px-2 py-8 sm:px-6 sm:py-14">
         <div className="relative z-10 max-w-2xl space-y-5">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
             <Scissors className="size-3.5" /> Exámenes a partir de cómics
           </p>
-          <h1 className="text-3xl font-bold sm:text-4xl">
-            Crea exámenes visuales con <span className="font-comic text-[1.15em] font-normal tracking-wide text-primary">viñetas</span> de tus cómics
+          <h1 className="text-display text-[2.6rem] sm:text-6xl">
+            Crea exámenes visuales con <span className="font-comic text-[1.1em] font-normal tracking-wide text-[#b45309] dark:text-comic">viñetas</span> de tus cómics
           </h1>
-          <p className="max-w-xl text-lg text-muted-foreground">Importa un CBR o CBZ, recorta las viñetas que necesites, colócalas en hojas A4 junto a tus preguntas y exporta un PDF listo para imprimir.</p>
+          <p className="max-w-xl text-lg text-pretty text-muted-foreground">Importa un CBR o CBZ, recorta las viñetas que necesites, colócalas en hojas A4 junto a tus preguntas y exporta un PDF listo para imprimir.</p>
           {/* Una sola acción principal; el resto, en un segundo plano visual. */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <Button
@@ -172,7 +172,7 @@ export function DashboardView() {
             >
               <Plus /> Nuevo examen
             </Button>
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" variant="glass" asChild>
               <Link href="/biblioteca">
                 <BookImage /> Biblioteca de cómics
               </Link>
@@ -197,10 +197,10 @@ export function DashboardView() {
             />
           </div>
         </div>
-        <div className="pointer-events-none absolute -right-6 -bottom-8 hidden rotate-6 xl:block" aria-hidden>
-          <div className="grid w-72 grid-cols-2 gap-2 rounded-xl border-4 border-slate-900 bg-white p-2 shadow-xl">
+        <div className="pointer-events-none absolute right-4 bottom-2 hidden rotate-6 xl:block" aria-hidden>
+          <div className="grid w-72 grid-cols-2 gap-2 rounded-xl border-4 border-slate-900 bg-card p-2 shadow-xl">
             <div className="col-span-2 h-20 rounded border-2 border-slate-900 bg-amber-200" />
-            <div className="h-24 rounded border-2 border-slate-900 bg-indigo-200" />
+            <div className="h-24 rounded border-2 border-slate-900 bg-sky-200" />
             <div className="h-24 rounded border-2 border-slate-900 bg-rose-200" />
           </div>
         </div>
@@ -210,7 +210,7 @@ export function DashboardView() {
       <section className="space-y-4">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-xl font-semibold">Exámenes recientes</h2>
+            <h2 className="text-headline text-3xl">Exámenes recientes</h2>
             <p className="text-sm text-muted-foreground">Se guardan automáticamente mientras trabajas.</p>
           </div>
         </div>
@@ -318,7 +318,7 @@ export function DashboardView() {
       <section className="space-y-4">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-xl font-semibold">Biblioteca de cómics</h2>
+            <h2 className="text-headline text-3xl">Biblioteca de cómics</h2>
             <p className="text-sm text-muted-foreground">{readyComics.length} cómic{readyComics.length === 1 ? "" : "s"} disponibles.</p>
           </div>
           <Button variant="outline" asChild>
