@@ -86,7 +86,7 @@ export function ComicViewer({
       try {
         const [c, sels] = await Promise.all([getComic(comicId), listSelections({ comicId })]);
         if (cancelled) return;
-        if (!c) throw new Error("Este cómic no existe en este navegador. Puede que se haya borrado.");
+        if (!c) throw new Error("Aquest còmic no existeix en aquest navegador. Pot ser que s'hagi esborrat.");
         setComic(c);
         setSaved(sels);
         setPageIdx((i) => Math.min(Math.max(0, i), Math.max(0, c.pages.length - 1)));
@@ -129,7 +129,7 @@ export function ComicViewer({
       const updated = await updateSelection(key.slice(2), { rect });
       setSaved((ss) => ss.map((x) => (x.id === updated.id ? updated : x)));
     } catch (err) {
-      toast.error("No se ha podido actualizar la viñeta", { description: (err as Error).message });
+      toast.error("No s'ha pogut actualitzar la vinyeta", { description: (err as Error).message });
     }
   };
 
@@ -137,7 +137,7 @@ export function ComicViewer({
     if (!page) return;
     const key = `d:${++draftCounter.current}`;
     const n = regions.length + 1;
-    setDrafts((d) => ({ ...d, [page.id]: [...(d[page.id] ?? []), { key, rect, label: `Pág. ${page.index + 1} · viñeta ${n}`, saved: false }] }));
+    setDrafts((d) => ({ ...d, [page.id]: [...(d[page.id] ?? []), { key, rect, label: `Pàg. ${page.index + 1} · vinyeta ${n}`, saved: false }] }));
     setActiveKey(key);
   };
 
@@ -166,9 +166,9 @@ export function ComicViewer({
     try {
       setBusy(true);
       await ensureSaved(key);
-      toast.success("Viñeta guardada en la biblioteca");
+      toast.success("Vinyeta desada a la biblioteca");
     } catch (err) {
-      toast.error("No se ha podido guardar la viñeta", { description: (err as Error).message });
+      toast.error("No s'ha pogut desar la vinyeta", { description: (err as Error).message });
     } finally {
       setBusy(false);
     }
@@ -184,17 +184,17 @@ export function ComicViewer({
         await deleteSelection(key.slice(2));
         setSaved((ss) => ss.filter((x) => x.id !== key.slice(2)));
         // Se puede recuperar durante unos segundos (se vuelve a crear con la misma región y nombre).
-        toast.success("Viñeta eliminada de la biblioteca", {
+        toast.success("Vinyeta eliminada de la biblioteca", {
           duration: 8000,
           action: removed
             ? {
-                label: "Deshacer",
+                label: "Desfés",
                 onClick: async () => {
                   try {
                     const restored = await createSelection({ pageId: removed.pageId, rect: removed.rect, label: removed.label });
                     setSaved((ss) => [...ss, restored]);
                   } catch (err) {
-                    toast.error("No se ha podido recuperar la viñeta", { description: (err as Error).message });
+                    toast.error("No s'ha pogut recuperar la vinyeta", { description: (err as Error).message });
                   }
                 },
               }
@@ -231,21 +231,21 @@ export function ComicViewer({
   const confirmLeave = useCallback(async (): Promise<boolean> => {
     if (draftCount === 0) return true;
     const choice = await choose({
-      title: draftCount === 1 ? "Tienes 1 viñeta sin guardar" : `Tienes ${draftCount} viñetas sin guardar`,
-      description: "Si sales sin guardarlas, se perderán. Las viñetas guardadas aparecen en la pestaña «Viñetas» del editor.",
+      title: draftCount === 1 ? "Tens 1 vinyeta sense desar" : `Tens ${draftCount} vinyetes sense desar`,
+      description: "Si surts sense desar-les, es perdran. Les vinyetes desades apareixen a la pestanya «Vinyetes» de l'editor.",
       options: [
-        { value: "save", label: "Guardar y salir" },
-        { value: "discard", label: "Salir sin guardar", variant: "outline" },
+        { value: "save", label: "Desa i surt" },
+        { value: "discard", label: "Surt sense desar", variant: "outline" },
       ],
-      cancelLabel: "Seguir seleccionando",
+      cancelLabel: "Continua seleccionant",
     });
     if (choice === null) return false;
     if (choice === "save") {
       try {
         const n = await saveAllDrafts();
-        toast.success(n === 1 ? "Viñeta guardada en la biblioteca" : `${n} viñetas guardadas en la biblioteca`);
+        toast.success(n === 1 ? "Vinyeta desada a la biblioteca" : `${n} vinyetes desades a la biblioteca`);
       } catch (err) {
-        toast.error("No se han podido guardar las viñetas", { description: (err as Error).message });
+        toast.error("No s'han pogut desar les vinyetes", { description: (err as Error).message });
         return false;
       }
     }
@@ -325,8 +325,8 @@ export function ComicViewer({
       for (const s of sources) {
         await appendImageToProject(projectId, s);
       }
-      toast.success(sources.length === 1 ? "Imagen añadida al examen" : `${sources.length} imágenes añadidas al examen`, {
-        action: { label: "Abrir examen", onClick: () => router.push(`/editor?id=${projectId}`) },
+      toast.success(sources.length === 1 ? "Imatge afegida a l'examen" : `${sources.length} imatges afegides a l'examen`, {
+        action: { label: "Obre l'examen", onClick: () => router.push(`/editor?id=${projectId}`) },
       });
     } catch (err) {
       toast.error((err as Error).message);
@@ -351,7 +351,7 @@ export function ComicViewer({
       await deliver(sources, layout, projectId);
       setCheckedRegions(new Set());
     } catch (err) {
-      toast.error("No se ha podido añadir la viñeta", { description: (err as Error).message });
+      toast.error("No s'ha pogut afegir la vinyeta", { description: (err as Error).message });
     } finally {
       setBusy(false);
     }
@@ -385,13 +385,13 @@ export function ComicViewer({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="max-h-80 w-64 overflow-y-auto">
-          <DropdownMenuLabel>Añadir al examen…</DropdownMenuLabel>
+          <DropdownMenuLabel>Afegeix a l’examen…</DropdownMenuLabel>
           {projects === null ? (
             <div className="flex items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" /> Cargando…
+              <Loader2 className="size-4 animate-spin" /> Carregant…
             </div>
           ) : projects.length === 0 ? (
-            <div className="px-2 py-2 text-sm text-muted-foreground">No hay exámenes. Crea uno desde el inicio.</div>
+            <div className="px-2 py-2 text-sm text-muted-foreground">No hi ha exàmens. Crea’n un des de l’inici.</div>
           ) : (
             projects.map((p) => (
               <DropdownMenuItem key={p.id} onSelect={() => run(p.id)}>
@@ -529,16 +529,16 @@ export function ComicViewer({
       for (let k = Math.min(a, b); k <= Math.max(a, b); k++) if (k >= 1 && k <= pageCount) next.add(k - 1);
     }
     setCheckedPages(next);
-    if (next.size === 0) toast.error("Rango no válido", { description: "Usa el formato 3-7, 10, 12-14" });
+    if (next.size === 0) toast.error("Interval no vàlid", { description: "Utilitza el format 3-7, 10, 12-14" });
   };
 
   /* ----------------------------- Render ----------------------------- */
 
-  if (loadError) return <EmptyState icon={<Scissors />} title="No se ha podido abrir el cómic" description={loadError} className="m-8" />;
+  if (loadError) return <EmptyState icon={<Scissors />} title="No s'ha pogut obrir el còmic" description={loadError} className="m-8" />;
   if (!comic || !page) {
     return (
       <div className="flex h-full items-center justify-center gap-2 text-muted-foreground">
-        <Loader2 className="size-5 animate-spin" /> Cargando cómic…
+        <Loader2 className="size-5 animate-spin" /> Carregant el còmic…
       </div>
     );
   }
@@ -552,10 +552,10 @@ export function ComicViewer({
       <aside className="flex w-44 shrink-0 flex-col border-r bg-card xl:w-52">
         <div className="space-y-2 border-b p-2">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-semibold">Páginas ({pageCount})</span>
+            <span className="text-xs font-semibold">Pàgines ({pageCount})</span>
             {checkedPages.size > 0 && (
               <button className="text-2xs text-primary hover:underline" onClick={() => setCheckedPages(new Set())}>
-                Quitar selección
+                Treu la selecció
               </button>
             )}
           </div>
@@ -564,9 +564,9 @@ export function ComicViewer({
               value={rangeText}
               onChange={(e) => setRangeText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && applyRange()}
-              placeholder="Rango: 3-7, 10"
+              placeholder="Interval: 3-7, 10"
               className="h-7 px-2 text-xs"
-              aria-label="Seleccionar rango de páginas"
+              aria-label="Selecciona un interval de pàgines"
             />
             <Button size="sm" variant="outline" className="h-7 px-2" onClick={applyRange}>
               OK
@@ -593,10 +593,10 @@ export function ComicViewer({
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={pageImageUrl(p.id, "thumb")} alt={`Página ${i + 1}`} loading="lazy" className="w-full" style={{ aspectRatio: `${p.width}/${p.height}` }} />
+                <img src={pageImageUrl(p.id, "thumb")} alt={`Pàgina ${i + 1}`} loading="lazy" className="w-full" style={{ aspectRatio: `${p.width}/${p.height}` }} />
                 <span className="absolute bottom-1 left-1 rounded bg-slate-900/75 px-1.5 text-2xs font-semibold text-white">{i + 1}</span>
                 {hasSel && (
-                  <span className="absolute right-1 bottom-1 rounded bg-emerald-500 p-0.5 text-white" title="Tiene viñetas guardadas">
+                  <span className="absolute right-1 bottom-1 rounded bg-emerald-500 p-0.5 text-white" title="Té vinyetes desades">
                     <Scissors className="size-2.5" />
                   </span>
                 )}
@@ -606,7 +606,7 @@ export function ComicViewer({
                   checked={checkedPages.has(i)}
                   onClick={(e) => e.stopPropagation()}
                   onChange={(e) => toggleCheck(i, e)}
-                  aria-label={`Seleccionar página ${i + 1}`}
+                  aria-label={`Selecciona la pàgina ${i + 1}`}
                 />
               </div>
             );
@@ -615,10 +615,10 @@ export function ComicViewer({
         {checkedPages.size > 0 && (
           <div className="space-y-2 border-t p-2">
             <p className="text-xs text-muted-foreground">
-              {checkedPages.size} página{checkedPages.size > 1 ? "s" : ""} seleccionada{checkedPages.size > 1 ? "s" : ""}
+              {checkedPages.size} pàgina{checkedPages.size > 1 ? "es" : ""} seleccionada{checkedPages.size > 1 ? "es" : ""}
             </p>
             {insertButton({
-              label: "Añadir al examen",
+              label: "Afegeix a l'examen",
               icon: <FilePlus2 />,
               run: (pid) => deliver(pageSources(checkedList), "perPage", pid),
             })}
@@ -629,8 +629,8 @@ export function ComicViewer({
       {/* ---------- Visor ---------- */}
       <section className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center gap-1 border-b bg-card px-3 py-1.5">
-          <Tip label="Página anterior (←)">
-            <Button variant="ghost" size="icon" onClick={() => goTo(pageIdx - 1)} disabled={pageIdx === 0} aria-label="Página anterior">
+          <Tip label="Pàgina anterior (←)">
+            <Button variant="ghost" size="icon" onClick={() => goTo(pageIdx - 1)} disabled={pageIdx === 0} aria-label="Pàgina anterior">
               <ChevronLeft />
             </Button>
           </Tip>
@@ -639,7 +639,7 @@ export function ComicViewer({
               key={pageIdx}
               defaultValue={pageIdx + 1}
               className="h-8 w-14 text-center"
-              aria-label="Número de página"
+              aria-label="Número de pàgina"
               onKeyDown={(e) => {
                 if (e.key === "Enter") goTo(Number((e.target as HTMLInputElement).value) - 1);
               }}
@@ -647,13 +647,13 @@ export function ComicViewer({
             />
             <span className="text-muted-foreground">/ {pageCount}</span>
           </div>
-          <Tip label="Página siguiente (→)">
-            <Button variant="ghost" size="icon" onClick={() => goTo(pageIdx + 1)} disabled={pageIdx >= pageCount - 1} aria-label="Página siguiente">
+          <Tip label="Pàgina següent (→)">
+            <Button variant="ghost" size="icon" onClick={() => goTo(pageIdx + 1)} disabled={pageIdx >= pageCount - 1} aria-label="Pàgina següent">
               <ChevronRight />
             </Button>
           </Tip>
           <Separator vertical />
-          <Tip label="Seleccionar viñeta (V)">
+          <Tip label="Selecciona una vinyeta (V)">
             <Button
               variant={tool === "select" ? "secondary" : "ghost"}
               size="sm"
@@ -661,28 +661,28 @@ export function ComicViewer({
               data-testid="tool-select-panel"
               className={cn(tool === "select" && "ring-1 ring-selection/30")}
             >
-              <SquareDashedMousePointer /> Seleccionar viñeta
+              <SquareDashedMousePointer /> Selecciona una vinyeta
             </Button>
           </Tip>
-          <Tip label="Mover la vista (H)">
-            <Button variant={tool === "pan" ? "secondary" : "ghost"} size="icon" onClick={() => setTool("pan")} aria-label="Mover la vista">
+          <Tip label="Mou la vista (H)">
+            <Button variant={tool === "pan" ? "secondary" : "ghost"} size="icon" onClick={() => setTool("pan")} aria-label="Mou la vista">
               <Hand />
             </Button>
           </Tip>
           <Separator vertical />
-          <Tip label="Alejar (−)">
-            <Button variant="ghost" size="icon" onClick={() => changeZoom(-1)} aria-label="Alejar">
+          <Tip label="Allunya (−)">
+            <Button variant="ghost" size="icon" onClick={() => changeZoom(-1)} aria-label="Allunya">
               <ZoomOut />
             </Button>
           </Tip>
           <span className="w-12 text-center text-xs tabular-nums text-muted-foreground">{Math.round(zoom * 100)} %</span>
-          <Tip label="Acercar (+)">
-            <Button variant="ghost" size="icon" onClick={() => changeZoom(1)} aria-label="Acercar">
+          <Tip label="Apropa (+)">
+            <Button variant="ghost" size="icon" onClick={() => changeZoom(1)} aria-label="Apropa">
               <ZoomIn />
             </Button>
           </Tip>
-          <Tip label="Ajustar a la ventana">
-            <Button variant="ghost" size="icon" onClick={() => setZoom(1)} aria-label="Ajustar a la ventana">
+          <Tip label="Ajusta a la finestra">
+            <Button variant="ghost" size="icon" onClick={() => setZoom(1)} aria-label="Ajusta a la finestra">
               <Maximize />
             </Button>
           </Tip>
@@ -691,7 +691,7 @@ export function ComicViewer({
               {page.width}×{page.height} px
             </span>
             {insertButton({
-              label: "Página completa",
+              label: "Pàgina completa",
               variant: "outline",
               icon: <Plus />,
               testId: "insert-full-page",
@@ -720,7 +720,7 @@ export function ComicViewer({
           <div className="flex min-h-full min-w-full items-center justify-center p-6" style={{ width: displayW + 48, height: displayH + 48 }}>
             <div ref={pageBoxRef} className="relative shrink-0 bg-white shadow-xl" style={{ width: displayW, height: displayH }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imgUrl} alt={`Página ${pageIdx + 1}`} className="pointer-events-none size-full select-none" draggable={false} />
+              <img src={imgUrl} alt={`Pàgina ${pageIdx + 1}`} className="pointer-events-none size-full select-none" draggable={false} />
               <div className={cn("absolute inset-0", tool === "pan" && "pointer-events-none")}>
                 <RegionSelector
                   regions={regions}
@@ -736,7 +736,7 @@ export function ComicViewer({
           </div>
           {regions.length === 0 && tool === "select" && (
             <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-900/80 px-3 py-1.5 text-xs text-white shadow">
-              Dibuja un rectángulo sobre una viñeta para seleccionarla
+              Dibuixa un rectangle sobre una vinyeta per seleccionar-la
             </div>
           )}
         </div>
@@ -746,9 +746,9 @@ export function ComicViewer({
       <aside className="flex w-72 shrink-0 flex-col border-l bg-card xl:w-80">
         <div className="flex items-center justify-between border-b px-3 py-2.5">
           <div>
-            <p className="text-sm font-semibold">Viñetas de la página {pageIdx + 1}</p>
+            <p className="text-sm font-semibold">Vinyetes de la pàgina {pageIdx + 1}</p>
             <p className="text-2xs text-muted-foreground">
-              {regions.filter((r) => r.saved).length} guardadas · {regions.filter((r) => !r.saved).length} sin guardar
+              {regions.filter((r) => r.saved).length} desades · {regions.filter((r) => !r.saved).length} sense desar
             </p>
           </div>
           {draftCount > 0 && (
@@ -761,15 +761,15 @@ export function ComicViewer({
                 try {
                   setBusy(true);
                   const n = await saveAllDrafts();
-                  toast.success(n === 1 ? "Viñeta guardada en la biblioteca" : `${n} viñetas guardadas en la biblioteca`);
+                  toast.success(n === 1 ? "Vinyeta desada a la biblioteca" : `${n} vinyetes desades a la biblioteca`);
                 } catch (err) {
-                  toast.error("No se han podido guardar las viñetas", { description: (err as Error).message });
+                  toast.error("No s'han pogut desar les vinyetes", { description: (err as Error).message });
                 } finally {
                   setBusy(false);
                 }
               }}
             >
-              <BookmarkPlus /> Guardar {draftCount > 1 ? `todas (${draftCount})` : "borrador"}
+              <BookmarkPlus /> Desa {draftCount > 1 ? `totes (${draftCount})` : "l'esborrany"}
             </Button>
           )}
         </div>
@@ -777,7 +777,7 @@ export function ComicViewer({
           {regions.length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
               <Scissors className="mx-auto mb-2 size-5" />
-              Activa <strong>Seleccionar viñeta</strong> y arrastra el ratón sobre la página. Puedes hacer varias selecciones, moverlas y ajustar sus bordes.
+              Activa <strong>Selecciona una vinyeta</strong> i arrossega el ratolí sobre la pàgina. Pots fer diverses seleccions, moure-les i ajustar-ne les vores.
             </div>
           ) : (
             regions.map((r, i) => (
@@ -801,7 +801,7 @@ export function ComicViewer({
                         return n;
                       })
                     }
-                    aria-label={`Marcar viñeta ${i + 1}`}
+                    aria-label={`Marca la vinyeta ${i + 1}`}
                   />
                   <span className={cn("flex size-5 items-center justify-center rounded text-2xs font-bold text-white", r.saved ? "bg-emerald-500" : "bg-amber-500")}>{i + 1}</span>
                   <input
@@ -809,30 +809,30 @@ export function ComicViewer({
                     value={r.label}
                     onChange={(e) => renameRegion(r.key, e.target.value)}
                     onBlur={(e) => commitLabel(r.key, e.target.value)}
-                    aria-label="Nombre de la viñeta"
+                    aria-label="Nom de la vinyeta"
                   />
-                  <Badge variant={r.saved ? "success" : "warning"}>{r.saved ? "Guardada" : "Borrador"}</Badge>
+                  <Badge variant={r.saved ? "success" : "warning"}>{r.saved ? "Desada" : "Esborrany"}</Badge>
                 </div>
                 <div className="checker overflow-hidden rounded border">
                   <CropPreview imageUrl={pageImageUrl(page.id, "preview")} rect={r.rect} pageWidth={page.width} pageHeight={page.height} />
                 </div>
                 <p className="mt-1 text-2xs text-muted-foreground tabular-nums">
-                  {Math.round(r.rect.w * page.width)}×{Math.round(r.rect.h * page.height)} px originales
+                  {Math.round(r.rect.w * page.width)}×{Math.round(r.rect.h * page.height)} px originals
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {insertButton({
-                    label: "Añadir al examen",
+                    label: "Afegeix a l'examen",
                     icon: <FilePlus2 />,
                     testId: "insert-region",
                     run: (pid) => insertRegions([r.key], "auto", pid),
                   })}
                   {!r.saved && (
                     <Button size="sm" variant="outline" disabled={busy} onClick={() => saveRegion(r.key)} data-testid="save-region">
-                      <BookmarkPlus /> Guardar en biblioteca
+                      <BookmarkPlus /> Desa a la biblioteca
                     </Button>
                   )}
-                  <Tip label={r.saved ? "Eliminar de la biblioteca" : "Descartar"}>
-                    <Button size="iconSm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => deleteRegion(r.key)} aria-label="Eliminar viñeta">
+                  <Tip label={r.saved ? "Elimina de la biblioteca" : "Descarta"}>
+                    <Button size="iconSm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => deleteRegion(r.key)} aria-label="Elimina la vinyeta">
                       <Trash2 />
                     </Button>
                   </Tip>
@@ -843,9 +843,9 @@ export function ComicViewer({
         </div>
         {checkedRegions.size >= 2 && (
           <div className="space-y-2 border-t bg-secondary/50 p-3">
-            <p className="text-xs font-medium">{checkedRegions.size} viñetas marcadas</p>
+            <p className="text-xs font-medium">{checkedRegions.size} vinyetes marcades</p>
             {insertButton({
-              label: "Añadir una junto a otra",
+              label: "Afegeix-les una al costat de l'altra",
               icon: <Columns2 />,
               testId: "insert-row",
               run: (pid) => insertRegions([...checkedRegions], "row", pid),
@@ -860,9 +860,9 @@ export function ComicViewer({
         {mode === "library" && (
           <div className="border-t p-3 text-2xs text-muted-foreground">
             <Check className="mr-1 inline size-3" />
-            Las viñetas guardadas aparecen en el editor, en la pestaña <strong>Viñetas</strong>.{" "}
+            Les vinyetes desades apareixen a l’editor, a la pestanya <strong>Vinyetes</strong>.{" "}
             <Link href="/" className="text-primary hover:underline">
-              Ir a mis exámenes
+              Ves als meus exàmens
             </Link>
           </div>
         )}

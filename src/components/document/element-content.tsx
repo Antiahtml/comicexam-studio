@@ -22,6 +22,7 @@ import type {
   TextElement,
 } from "@/lib/document/types";
 import { fontCss } from "@/lib/document/fonts";
+import { matchOrder } from "@/lib/document/match";
 import { sourceUrl } from "@/lib/images/urls";
 import { SafeImage } from "./safe-image";
 
@@ -113,23 +114,41 @@ function AnswerLines({ count, spacing, style, color = "#6b7280", thickness = 0.6
   );
 }
 
+/**
+ * Línies que omplen tot l'espai que queda a la caixa: se'n dibuixen de sobra i el contenidor (amb
+ * `overflow: hidden`) retalla les que no hi caben. Així, en allargar o escurçar la caixa, apareixen
+ * o desapareixen línies soles, sense estat ni mesures: serveix igual al navegador i al PDF.
+ */
+const FILL_LINE_ROWS = 70;
+function FillLines({ spacing, style, color = "#6b7280", thickness = 0.6 }: { spacing: number; style: string; color?: string; thickness?: number }) {
+  return (
+    <div style={{ flex: "1 1 0", minHeight: 0, width: "100%", overflow: "hidden" }} data-fill-lines>
+      {Array.from({ length: FILL_LINE_ROWS }, (_, i) => (
+        <div key={i} style={{ height: mm(spacing), borderBottom: `${pt(thickness)} ${style} ${color}`, boxSizing: "border-box" }} />
+      ))}
+    </div>
+  );
+}
+
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
 function QuestionContent({ el, ctx }: { el: QuestionElement; ctx: RenderContext }) {
   const number = ctx.numbers.get(el.id) ?? "?";
   const showPoints = ctx.doc.settings.showPoints && el.points !== null && el.points > 0;
   const fs = el.fontSize;
+  // Respuesta larga e imagen: las líneas llenan la caja (ver FillLines).
+  const fill = (el.kind === "long" || el.kind === "image") && el.autoLines === true;
   let body: ReactNode = null;
   switch (el.kind) {
     case "short":
     case "long":
-      body = <AnswerLines count={el.lines} spacing={el.lineSpacing} style={el.lineStyle} />;
+      body = fill ? <FillLines spacing={el.lineSpacing} style={el.lineStyle} /> : <AnswerLines count={el.lines} spacing={el.lineSpacing} style={el.lineStyle} />;
       break;
     case "image":
       body = (
         <>
           {el.image ? (
-            <div style={{ height: mm(el.imageHeight), marginBottom: mm(2), display: "flex", justifyContent: "center" }}>
+            <div style={{ height: mm(el.imageHeight), marginBottom: mm(2), display: "flex", justifyContent: "center", flexShrink: 0 }}>
               <SourceImage src={el.image} quality={ctx.quality} fit="contain" style={{ width: "auto", maxWidth: "100%", border: "0.75pt solid #111827" }} />
             </div>
           ) : (
@@ -137,6 +156,7 @@ function QuestionContent({ el, ctx }: { el: QuestionElement; ctx: RenderContext 
               style={{
                 height: mm(el.imageHeight),
                 marginBottom: mm(2),
+                flexShrink: 0,
                 border: "0.75pt dashed #9ca3af",
                 display: "flex",
                 alignItems: "center",
@@ -145,29 +165,25 @@ function QuestionContent({ el, ctx }: { el: QuestionElement; ctx: RenderContext 
                 fontSize: pt(9),
               }}
             >
-              Arrastra aquí una viñeta o elígela en el panel de propiedades
+              Arrossega aquí una vinyeta o tria-la al panell de propietats
             </div>
           )}
-          <AnswerLines count={el.lines} spacing={el.lineSpacing} style={el.lineStyle} />
+          {fill ? <FillLines spacing={el.lineSpacing} style={el.lineStyle} /> : <AnswerLines count={el.lines} spacing={el.lineSpacing} style={el.lineStyle} />}
         </>
       );
       break;
     case "multiple":
       body = (
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${el.optionColumns}, minmax(0, 1fr))`, columnGap: mm(4), rowGap: mm(2), paddingTop: mm(1) }}>
+        <div
+          style={
+            el.optionColumns >= 1
+              ? { display: "grid", gridTemplateColumns: `repeat(${el.optionColumns}, minmax(0, 1fr))`, columnGap: mm(8), rowGap: mm(2), paddingTop: mm(1) }
+              : // Automático: todas en una fila, bien repartidas; si no caben, pasan a más filas.
+                { display: "flex", flexWrap: "wrap", columnGap: mm(8), rowGap: mm(2), paddingTop: mm(1) }
+          }
+        >
           {el.options.map((o, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: mm(2) }}>
-              <span
-                style={{
-                  flexShrink: 0,
-                  width: mm(3.6),
-                  height: mm(3.6),
-                  marginTop: mm(0.4),
-                  border: "0.9pt solid #374151",
-                  borderRadius: "50%",
-                  boxSizing: "border-box",
-                }}
-              />
+            <div key={i} style={el.optionColumns >= 1 ? undefined : { flex: "1 0 auto", maxWidth: "100%" }}>
               <span style={{ whiteSpace: "pre-wrap" }}>
                 <strong>{LETTERS[i]})</strong> {o}
               </span>
@@ -198,18 +214,19 @@ function QuestionContent({ el, ctx }: { el: QuestionElement; ctx: RenderContext 
     case "match":
       body = (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: mm(18), rowGap: mm(2.5), paddingTop: mm(1.5) }}>
-          {el.pairs.map((p, i) => (
+          {/* La columna B se baraja sola (llavor guardada): el docent escriu les parelles correctes. */}
+          {matchOrder(el.pairs.length, el.shuffleSeed).map((pairIndex, i) => (
             <div key={`l${i}`} style={{ display: "contents" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: mm(2) }}>
                 <span style={{ whiteSpace: "pre-wrap" }}>
-                  {i + 1}. {p.left}
+                  {i + 1}. {el.pairs[i].left}
                 </span>
                 <span style={{ width: mm(2), height: mm(2), borderRadius: "50%", background: "#111827", flexShrink: 0 }} />
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: mm(2) }}>
                 <span style={{ width: mm(2), height: mm(2), borderRadius: "50%", background: "#111827", flexShrink: 0 }} />
                 <span style={{ whiteSpace: "pre-wrap" }}>
-                  {LETTERS[i]}) {p.right}
+                  {LETTERS[i]}) {el.pairs[pairIndex].right}
                 </span>
               </div>
             </div>
@@ -230,10 +247,11 @@ function QuestionContent({ el, ctx }: { el: QuestionElement; ctx: RenderContext 
         lineHeight: 1.35,
         color: el.color,
         padding: el.border.width > 0 ? mm(2) : 0,
+        ...(fill ? { display: "flex", flexDirection: "column" as const } : null),
         ...borderCss(el.border),
       }}
     >
-      <div style={{ display: "flex", gap: mm(1.5), alignItems: "baseline", marginBottom: mm(1.5) }}>
+      <div style={{ display: "flex", gap: mm(1.5), alignItems: "baseline", marginBottom: mm(1.5), flexShrink: 0 }}>
         <strong style={{ flexShrink: 0 }}>{number}.</strong>
         <span style={{ flex: 1, whiteSpace: "pre-wrap", fontWeight: 600 }}>{el.prompt}</span>
         {showPoints && (
@@ -249,7 +267,7 @@ function QuestionContent({ el, ctx }: { el: QuestionElement; ctx: RenderContext 
 
 export function formatPoints(p: number): string {
   const n = Number.isInteger(p) ? String(p) : p.toFixed(2).replace(/0+$/, "").replace(".", ",");
-  return `${n} ${p === 1 ? "punto" : "puntos"}`;
+  return `${n} ${p === 1 ? "punt" : "punts"}`;
 }
 
 /* ------------------------------- Respuestas ------------------------------- */
@@ -416,19 +434,18 @@ function ExamHeaderContent({ el, ctx }: { el: ExamHeaderElement; ctx: RenderCont
         {el.showScore && (
           <div style={{ border: "1pt solid #111827", borderRadius: mm(1.5), padding: `${mm(1.5)} ${mm(3)}`, textAlign: "center", flexShrink: 0 }}>
             <div style={{ fontSize: pt(8), textTransform: "uppercase", letterSpacing: "0.06em", color: "#4b5563" }}>Nota</div>
-            <div style={{ fontSize: pt(13), fontWeight: 700, whiteSpace: "nowrap" }}>
-              <span style={{ display: "inline-block", width: mm(10) }} />/ {m.totalScore ?? "—"}
-            </div>
+            {/* Casilla vacía para escribir la nota a mano. */}
+            <div style={{ width: mm(20), height: mm(8) }} />
           </div>
         )}
       </div>
       {el.showName && (
         <div style={{ display: "flex", alignItems: "flex-end", gap: mm(2) }}>
-          <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>Nombre y apellidos:</span>
+          <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>Nom i cognoms:</span>
           <span style={line} />
           {el.showCourse && (
             <>
-              <span style={{ fontWeight: 600, whiteSpace: "nowrap", marginLeft: mm(2) }}>Grupo:</span>
+              <span style={{ fontWeight: 600, whiteSpace: "nowrap", marginLeft: mm(2) }}>Grup:</span>
               <span style={{ ...line, flex: "0 0 22mm" }} />
             </>
           )}
@@ -436,7 +453,7 @@ function ExamHeaderContent({ el, ctx }: { el: ExamHeaderElement; ctx: RenderCont
       )}
       {el.showInstructions && m.instructions && (
         <div style={{ fontSize: pt(9.5), color: "#374151", whiteSpace: "pre-wrap", lineHeight: 1.35 }}>
-          <strong>Instrucciones: </strong>
+          <strong>Instruccions: </strong>
           {m.instructions}
         </div>
       )}

@@ -30,7 +30,7 @@ export function DialogContent({
         {!hideClose && (
           <DialogPrimitive.Close className="absolute top-3.5 right-3.5 rounded-full p-1.5 text-muted-foreground transition-[color,background-color,scale] hover:bg-muted hover:text-foreground motion-safe:active:scale-90">
             <XIcon className="size-4" />
-            <span className="sr-only">Cerrar</span>
+            <span className="sr-only">Tanca</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>

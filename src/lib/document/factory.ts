@@ -1,3 +1,4 @@
+import { newShuffleSeed } from "./match";
 import { nanoid } from "nanoid";
 import type {
   BorderStyle,
@@ -33,17 +34,17 @@ export function defaultSettings(): DocSettings {
     pageNumberFormat: "pagina-n-de-total",
     pageNumberPosition: "center",
     header: { enabled: false, left: "{asignatura}", center: "", right: "{curso}" },
-    footer: { enabled: false, left: "{titulo}", center: "", right: "" },
+    footer: { enabled: false, left: "{titol}", center: "", right: "" },
     fontFamily: "inter",
     showPoints: true,
   };
 }
 
-export function todayEs(): string {
-  return new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+export function todayCa(): string {
+  return new Date().toLocaleDateString("ca-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-export function createDefaultDocument(title = "Examen sin título"): ExamDocument {
+export function createDefaultDocument(title = "Examen sense títol"): ExamDocument {
   const settings = defaultSettings();
   const area = printableArea(settings);
   const header = createExamHeader();
@@ -56,9 +57,9 @@ export function createDefaultDocument(title = "Examen sin título"): ExamDocumen
       title,
       subject: "",
       course: "",
-      date: todayEs(),
+      date: todayCa(),
       totalScore: 10,
-      instructions: "Lee atentamente cada pregunta y responde con letra clara.",
+      instructions: "Llegeix atentament cada pregunta i respon amb lletra clara.",
     },
     settings,
     pages: [{ id: newId(), elements: [header] }],
@@ -92,14 +93,14 @@ export type TextPreset = "title" | "subtitle" | "paragraph" | "instructions" | "
 export function createText(preset: TextPreset = "paragraph"): TextElement {
   switch (preset) {
     case "title":
-      return { ...baseProps(180, 14), type: "text", text: "Título", style: defaultTextStyle({ fontSize: 22, bold: true }), border: NO_BORDER };
+      return { ...baseProps(180, 14), type: "text", text: "Títol", style: defaultTextStyle({ fontSize: 22, bold: true }), border: NO_BORDER };
     case "subtitle":
-      return { ...baseProps(180, 10), type: "text", text: "Subtítulo de sección", style: defaultTextStyle({ fontSize: 15, bold: true, color: "#1e3a8a" }), border: NO_BORDER };
+      return { ...baseProps(180, 10), type: "text", text: "Subtítol de secció", style: defaultTextStyle({ fontSize: 15, bold: true, color: "#1e3a8a" }), border: NO_BORDER };
     case "instructions":
       return {
         ...baseProps(180, 18),
         type: "text",
-        text: "Instrucciones: observa las viñetas y responde a las preguntas.",
+        text: "Instruccions: observa les vinyetes i respon a les preguntes.",
         style: defaultTextStyle({ fontSize: 10.5, italic: true, background: "#f3f4f6", padding: 3 }),
         border: { width: 0.75, color: "#9ca3af", radius: 2, style: "solid" },
       };
@@ -107,31 +108,31 @@ export function createText(preset: TextPreset = "paragraph"): TextElement {
       return {
         ...baseProps(80, 14),
         type: "text",
-        text: "Recuerda: …",
+        text: "Recorda: …",
         style: defaultTextStyle({ fontSize: 10, background: "#fef3c7", padding: 3 }),
         border: { width: 0.75, color: "#f59e0b", radius: 2, style: "solid" },
       };
     default:
-      return { ...baseProps(180, 12), type: "text", text: "Escribe aquí tu texto.", style: defaultTextStyle(), border: NO_BORDER };
+      return { ...baseProps(180, 12), type: "text", text: "Escriu aquí el teu text.", style: defaultTextStyle(), border: NO_BORDER };
   }
 }
 
 const QUESTION_DEFAULTS: Record<QuestionKind, { prompt: string; h: number; lines: number }> = {
-  short: { prompt: "¿Cómo se llama el protagonista?", h: 20, lines: 1 },
-  long: { prompt: "¿Qué está ocurriendo en esta escena? Explica tu respuesta.", h: 50, lines: 5 },
-  multiple: { prompt: "¿Qué emoción muestra el personaje en la viñeta?", h: 30, lines: 0 },
-  truefalse: { prompt: "Indica si las siguientes afirmaciones son verdaderas (V) o falsas (F).", h: 34, lines: 0 },
-  match: { prompt: "Relaciona cada personaje con su descripción.", h: 40, lines: 0 },
-  image: { prompt: "Observa la imagen y describe lo que ves.", h: 95, lines: 4 },
+  short: { prompt: "Com es diu el protagonista?", h: 20, lines: 1 },
+  long: { prompt: "Què està passant en aquesta escena? Explica la teva resposta.", h: 50, lines: 5 },
+  multiple: { prompt: "Quina emoció mostra el personatge a la vinyeta?", h: 30, lines: 0 },
+  truefalse: { prompt: "Indica si les afirmacions següents són vertaderes (V) o falses (F).", h: 34, lines: 0 },
+  match: { prompt: "Relaciona cada personatge amb la seva descripció.", h: 40, lines: 0 },
+  image: { prompt: "Observa la imatge i descriu què hi veus.", h: 95, lines: 4 },
 };
 
 export const QUESTION_LABELS: Record<QuestionKind, string> = {
-  short: "Respuesta corta",
-  long: "Respuesta larga",
-  multiple: "Opción múltiple",
-  truefalse: "Verdadero o falso",
-  match: "Relacionar conceptos",
-  image: "Pregunta sobre imagen",
+  short: "Resposta curta",
+  long: "Resposta llarga",
+  multiple: "Opció múltiple",
+  truefalse: "Vertader o fals",
+  match: "Relacionar conceptes",
+  image: "Pregunta sobre imatge",
 };
 
 export function createQuestion(kind: QuestionKind): QuestionElement {
@@ -146,17 +147,19 @@ export function createQuestion(kind: QuestionKind): QuestionElement {
     lines: d.lines,
     lineSpacing: 8,
     lineStyle: "solid",
-    options: kind === "multiple" ? ["Alegría", "Miedo", "Sorpresa", "Enfado"] : [],
-    optionColumns: 2,
-    statements: kind === "truefalse" ? ["El protagonista está en su casa.", "La escena ocurre de noche.", "Hay tres personajes en la viñeta."] : [],
+    options: kind === "multiple" ? ["Alegria", "Por", "Sorpresa", "Enuig"] : [],
+    optionColumns: 0,
+    statements: kind === "truefalse" ? ["El protagonista és a casa seva.", "L'escena passa de nit.", "Hi ha tres personatges a la vinyeta."] : [],
     pairs:
       kind === "match"
         ? [
-            { left: "Personaje A", right: "Es valiente" },
-            { left: "Personaje B", right: "Es curioso" },
-            { left: "Personaje C", right: "Es desconfiado" },
+            { left: "Personatge A", right: "És valent" },
+            { left: "Personatge B", right: "És curiós" },
+            { left: "Personatge C", right: "És desconfiat" },
           ]
         : [],
+    shuffleSeed: kind === "match" ? newShuffleSeed() : undefined,
+    autoLines: kind === "long" || kind === "image" ? true : undefined,
     image: null,
     imageHeight: 55,
     fontFamily: "inherit",
@@ -175,7 +178,7 @@ export function createBox(variant: "box" | "area" | "grid" = "box"): BoxElement 
   return {
     ...baseProps(180, variant === "box" ? 30 : 60),
     type: "box",
-    label: variant === "area" ? "Respuesta:" : "",
+    label: variant === "area" ? "Resposta:" : "",
     border: { width: 0.75, color: "#6b7280", radius: variant === "box" ? 2 : 0, style: "solid" },
     background: null,
     grid: variant === "grid" ? 5 : 0,
@@ -199,7 +202,7 @@ export function createShape(shape: ShapeKind): ShapeElement {
     dash: "solid",
     fill: null,
     radius: shape === "rect" ? 2 : 0,
-    title: shape === "divider" ? "Sección 1" : "",
+    title: shape === "divider" ? "Secció 1" : "",
   };
 }
 

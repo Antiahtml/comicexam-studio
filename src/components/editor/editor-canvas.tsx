@@ -154,8 +154,8 @@ export function EditorCanvas() {
     );
     if (lastInserted.newPages > 0 && lastInserted.firstNewPage !== null) {
       const n = lastInserted.firstNewPage + 1;
-      toast.info(lastInserted.newPages === 1 ? `No cabía en la hoja anterior: se ha añadido en la nueva hoja ${n}.` : `Se han creado ${lastInserted.newPages} hojas nuevas.`, {
-        action: { label: "Deshacer", onClick: () => useEditor.getState().undo() },
+      toast.info(lastInserted.newPages === 1 ? `No cabia al full anterior: s'ha afegit al full nou ${n}.` : `S'han creat ${lastInserted.newPages} fulls nous.`, {
+        action: { label: "Desfés", onClick: () => useEditor.getState().undo() },
       });
     }
     return () => cancelAnimationFrame(raf);
@@ -190,41 +190,41 @@ export function EditorCanvas() {
                 className={cn("text-xs font-semibold text-muted-foreground", activePageId === page.id && "text-primary")}
                 onClick={() => useEditor.getState().setActivePage(page.id)}
               >
-                Hoja {i + 1} de {doc.pages.length}
+                Full {i + 1} de {doc.pages.length}
               </button>
               <div className="flex items-center gap-0.5">
-                <Tip label="Subir hoja">
-                  <Button variant="ghost" size="iconSm" disabled={i === 0} onClick={() => useEditor.getState().movePage(i, i - 1)} aria-label="Subir hoja">
+                <Tip label="Puja el full">
+                  <Button variant="ghost" size="iconSm" disabled={i === 0} onClick={() => useEditor.getState().movePage(i, i - 1)} aria-label="Puja el full">
                     <ArrowUp />
                   </Button>
                 </Tip>
-                <Tip label="Bajar hoja">
-                  <Button variant="ghost" size="iconSm" disabled={i === doc.pages.length - 1} onClick={() => useEditor.getState().movePage(i, i + 1)} aria-label="Bajar hoja">
+                <Tip label="Baixa el full">
+                  <Button variant="ghost" size="iconSm" disabled={i === doc.pages.length - 1} onClick={() => useEditor.getState().movePage(i, i + 1)} aria-label="Baixa el full">
                     <ArrowDown />
                   </Button>
                 </Tip>
-                <Tip label="Duplicar hoja">
-                  <Button variant="ghost" size="iconSm" onClick={() => useEditor.getState().duplicatePage(page.id)} aria-label="Duplicar hoja">
+                <Tip label="Duplica el full">
+                  <Button variant="ghost" size="iconSm" onClick={() => useEditor.getState().duplicatePage(page.id)} aria-label="Duplica el full">
                     <Copy />
                   </Button>
                 </Tip>
-                <Tip label="Añadir hoja después">
-                  <Button variant="ghost" size="iconSm" onClick={() => useEditor.getState().addPage(i)} aria-label="Añadir hoja después">
+                <Tip label="Afegeix un full després">
+                  <Button variant="ghost" size="iconSm" onClick={() => useEditor.getState().addPage(i)} aria-label="Afegeix un full després">
                     <FilePlus2 />
                   </Button>
                 </Tip>
-                <Tip label="Eliminar hoja">
+                <Tip label="Elimina el full">
                   <Button
                     variant="ghost"
                     size="iconSm"
                     className="hover:text-destructive"
-                    aria-label="Eliminar hoja"
+                    aria-label="Elimina el full"
                     onClick={async () => {
                       if (page.elements.length > 0) {
                         const ok = await confirm({
-                          title: `¿Eliminar la hoja ${i + 1}?`,
-                          description: `Contiene ${page.elements.length} elemento(s). Puedes deshacerlo con Ctrl/Cmd + Z.`,
-                          confirmLabel: "Eliminar hoja",
+                          title: `Vols eliminar el full ${i + 1}?`,
+                          description: `Conté ${page.elements.length} element(s). Ho pots desfer amb Ctrl/Cmd + Z.`,
+                          confirmLabel: "Elimina el full",
                           destructive: true,
                         });
                         if (!ok) return;
@@ -241,7 +241,7 @@ export function EditorCanvas() {
           </div>
         ))}
         <Button variant="outline" className="mt-2 border-dashed" onClick={() => useEditor.getState().addPage(doc.pages.length - 1)} data-testid="add-page">
-          <FilePlus2 /> Añadir hoja
+          <FilePlus2 /> Afegeix un full
         </Button>
       </div>
     </div>

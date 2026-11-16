@@ -97,7 +97,7 @@ export async function createComicRecord(data: Pick<ComicRecord, "title" | "origi
     ...data,
     status: "processing",
     progress: 0,
-    stage: "En cola…",
+    stage: "En cua…",
     error: null,
     pageCount: 0,
     coverPageId: null,
@@ -112,7 +112,7 @@ export async function createComicRecord(data: Pick<ComicRecord, "title" | "origi
 export async function renameComic(id: string, title: string): Promise<void> {
   const db = await getDB();
   const c = await db.get("comics", id);
-  if (!c) throw new Error("Cómic no encontrado");
+  if (!c) throw new Error("Còmic no trobat");
   await db.put("comics", { ...c, title: title.trim().slice(0, 160) || c.title, updatedAt: nowIso() });
   notifyChange("comics");
 }
@@ -134,7 +134,7 @@ export async function deleteComicContent(comicId: string): Promise<void> {
 
 export class ComicInUseError extends Error {
   constructor(public usedBy: { id: string; name: string }[]) {
-    super(`Este cómic se usa en ${usedBy.length} examen(es).`);
+    super(`Aquest còmic s'utilitza en ${usedBy.length} examen(s).`);
   }
 }
 
@@ -186,21 +186,21 @@ export async function listSelections(filter: { comicId?: string; pageId?: string
 
 function validRect(rect: NormRect): NormRect {
   const r = clampRect(rect, 0.002);
-  if (!isValidRect(r)) throw new Error("La región seleccionada no es válida.");
+  if (!isValidRect(r)) throw new Error("La regió seleccionada no és vàlida.");
   return r;
 }
 
 export async function createSelection(input: { pageId: string; rect: NormRect; label?: string }): Promise<SavedSelection> {
   const db = await getDB();
   const page = await db.get("pages", input.pageId);
-  if (!page) throw new Error("Página no encontrada");
+  if (!page) throw new Error("Pàgina no trobada");
   const count = (await db.getAllKeysFromIndex("selections", "pageId", page.id)).length;
   const rect = validRect(input.rect);
   const rec: SelectionRecord = {
     id: newId(),
     comicId: page.comicId,
     pageId: page.id,
-    label: input.label?.trim().slice(0, 200) || `Pág. ${page.index + 1} · viñeta ${count + 1}`,
+    label: input.label?.trim().slice(0, 200) || `Pàg. ${page.index + 1} · vinyeta ${count + 1}`,
     ...rect,
     createdAt: nowIso(),
     updatedAt: nowIso(),
@@ -213,7 +213,7 @@ export async function createSelection(input: { pageId: string; rect: NormRect; l
 export async function updateSelection(id: string, patch: { label?: string; rect?: NormRect }): Promise<SavedSelection> {
   const db = await getDB();
   const s = await db.get("selections", id);
-  if (!s) throw new Error("Viñeta no encontrada");
+  if (!s) throw new Error("Vinyeta no trobada");
   const next: SelectionRecord = { ...s, updatedAt: nowIso() };
   if (patch.label !== undefined) next.label = patch.label.trim().slice(0, 200);
   if (patch.rect) Object.assign(next, validRect(patch.rect));
@@ -251,7 +251,7 @@ export async function getProject(id: string): Promise<{ id: string; name: string
 }
 
 export async function createProject(name: string, document?: ExamDocument): Promise<{ id: string; name: string }> {
-  const clean = name.trim().slice(0, 200) || "Examen sin título";
+  const clean = name.trim().slice(0, 200) || "Examen sense títol";
   const doc = document ? parseDocument(document) : createDefaultDocument(clean);
   const rec = { id: newId(), name: clean, document: doc, createdAt: nowIso(), updatedAt: nowIso() };
   await (await getDB()).put("projects", rec);
@@ -263,12 +263,12 @@ export async function createProject(name: string, document?: ExamDocument): Prom
 export async function saveProject(id: string, data: { name?: string; document?: unknown }): Promise<{ updatedAt: string }> {
   const db = await getDB();
   const p = await db.get("projects", id);
-  if (!p) throw new Error("El examen no existe (¿se ha borrado en otra pestaña?).");
+  if (!p) throw new Error("L'examen no existeix (s'ha esborrat en una altra pestanya?).");
   const next = { ...p, updatedAt: nowIso() };
-  if (data.name !== undefined) next.name = data.name.trim().slice(0, 200) || "Examen sin título";
+  if (data.name !== undefined) next.name = data.name.trim().slice(0, 200) || "Examen sense títol";
   if (data.document !== undefined) {
     const parsed = safeParseDocument(data.document);
-    if (!parsed.ok) throw new Error("No se ha podido guardar: el documento tiene datos no válidos.");
+    if (!parsed.ok) throw new Error("No s'ha pogut desar: el document té dades no vàlides.");
     next.document = parsed.doc;
   }
   await db.put("projects", next);
@@ -282,7 +282,7 @@ export async function renameProject(id: string, name: string) {
 
 export async function duplicateProject(id: string): Promise<{ id: string; name: string }> {
   const p = await getProject(id);
-  if (!p) throw new Error("Examen no encontrado");
+  if (!p) throw new Error("Examen no trobat");
   return createProject(`${p.name} (copia)`, p.document);
 }
 
@@ -324,7 +324,7 @@ export async function projectsUsingComic(comicId: string): Promise<{ id: string;
 /** Inserta una imagen (página o viñeta) en la última hoja de un examen, desde el visor de la biblioteca. */
 export async function appendImageToProject(projectId: string, src: ImageSource): Promise<void> {
   const project = await getProject(projectId);
-  if (!project) throw new Error("Examen no encontrado");
+  if (!project) throw new Error("Examen no trobat");
   const doc = project.document;
   const area = printableArea(doc.settings);
   let page = doc.pages[doc.pages.length - 1];

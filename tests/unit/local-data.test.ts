@@ -89,7 +89,7 @@ describe("persistencia y recuperación de exámenes (IndexedDB)", () => {
 
   it("rechaza guardar un documento no válido sin perder el anterior", async () => {
     const { id } = await createProject("Validación");
-    await expect(saveProject(id, { document: { version: 2 } })).rejects.toThrow(/no válidos/);
+    await expect(saveProject(id, { document: { version: 2 } })).rejects.toThrow(/no vàlides/);
     expect((await getProject(id))?.document.version).toBe(1);
   });
 
@@ -118,7 +118,7 @@ describe("biblioteca: viñetas y borrado seguro", () => {
   it("guarda, edita y borra viñetas con coordenadas normalizadas", async () => {
     const { comicId, pageIds } = await fakeComic();
     const s = await createSelection({ pageId: pageIds[1], rect: { x: 0.1, y: 0.2, w: 0.3, h: 0.4 } });
-    expect(s).toMatchObject({ comicId, pageIndex: 1, label: "Pág. 2 · viñeta 1", rect: { x: 0.1, y: 0.2, w: 0.3, h: 0.4 } });
+    expect(s).toMatchObject({ comicId, pageIndex: 1, label: "Pàg. 2 · vinyeta 1", rect: { x: 0.1, y: 0.2, w: 0.3, h: 0.4 } });
     const moved = await updateSelection(s.id, { rect: { x: 0.95, y: 0, w: 0.3, h: 0.4 } });
     expect(moved.rect.x + moved.rect.w).toBeLessThanOrEqual(1);
     expect(await listSelections({ comicId })).toHaveLength(1);
@@ -168,12 +168,12 @@ describe("exportar e importar exámenes (.comicexam)", () => {
   it("importa los .comicexam de la versión anterior (con servidor)", async () => {
     const bytes = new Uint8Array(await fs.readFile(path.resolve(__dirname, "../../public/ejemplo.comicexam")));
     const { manifest, document } = readBundle(bytes);
-    expect(manifest.name).toBe("Comprensión lectora — Cómic (ejemplo)");
+    expect(manifest.name).toBe("Comprensió lectora — Còmic (exemple)");
     expect(document.pages).toHaveLength(2);
     expect(manifest.pages.length).toBeGreaterThan(0);
   });
 
   it("rechaza archivos que no son proyectos", () => {
-    expect(() => readBundle(new TextEncoder().encode("hola"))).toThrow(/no es un proyecto/);
+    expect(() => readBundle(new TextEncoder().encode("hola"))).toThrow(/no és un projecte/);
   });
 });

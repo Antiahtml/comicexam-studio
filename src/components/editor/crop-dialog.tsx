@@ -37,8 +37,8 @@ function CropBody({ src, onSave, onClose }: { src: ImageSource; onSave: (rect: N
   return (
     <>
         <DialogHeader>
-          <DialogTitle>Recortar imagen</DialogTitle>
-          <DialogDescription>Arrastra los bordes o las esquinas, o dibuja un nuevo rectángulo. El recorte se aplica sobre la imagen original, sin perder calidad.</DialogDescription>
+          <DialogTitle>Retalla la imatge</DialogTitle>
+          <DialogDescription>Arrossega les vores o les cantonades, o dibuixa un rectangle nou. La retallada s’aplica sobre la imatge original, sense perdre qualitat.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 md:grid-cols-[1fr_240px]">
           <div className="flex max-h-[68vh] items-center justify-center overflow-auto rounded-lg bg-canvas p-3">
@@ -46,7 +46,7 @@ function CropBody({ src, onSave, onClose }: { src: ImageSource; onSave: (rect: N
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={pageImageUrl(src.pageId, "preview")} alt="" className="pointer-events-none size-full select-none" draggable={false} />
               <RegionSelector
-                regions={[{ key: "crop", rect, label: "Recorte", saved: true }]}
+                regions={[{ key: "crop", rect, label: "Retallada", saved: true }]}
                 activeKey="crop"
                 drawEnabled
                 onSelect={() => undefined}
@@ -57,21 +57,21 @@ function CropBody({ src, onSave, onClose }: { src: ImageSource; onSave: (rect: N
             </div>
           </div>
           <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground">Vista previa</p>
+            <p className="text-xs font-medium text-muted-foreground">Vista prèvia</p>
             <div className="checker overflow-hidden rounded border">
               <CropPreview imageUrl={pageImageUrl(src.pageId, "preview")} rect={rect} pageWidth={src.pageWidth} pageHeight={src.pageHeight} />
             </div>
             <p className="text-2xs text-muted-foreground tabular-nums">
-              {Math.round(rect.w * src.pageWidth)} × {Math.round(rect.h * src.pageHeight)} px originales
+              {Math.round(rect.w * src.pageWidth)} × {Math.round(rect.h * src.pageHeight)} px originals
             </p>
             <Button variant="outline" size="sm" onClick={() => setRect(FULL_RECT)}>
-              <RotateCcw /> Página completa
+              <RotateCcw /> Pàgina completa
             </Button>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancelar
+            Cancel·la
           </Button>
           <Button
             onClick={() => {
@@ -79,7 +79,7 @@ function CropBody({ src, onSave, onClose }: { src: ImageSource; onSave: (rect: N
               onClose();
             }}
           >
-            Aplicar recorte
+            Aplica la retallada
           </Button>
         </DialogFooter>
     </>

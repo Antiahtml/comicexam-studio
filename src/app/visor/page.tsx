@@ -22,11 +22,11 @@ function Visor() {
       alive = false;
     };
   }, [id]);
-  if (!id || comic === null) return <NotFoundView what="El cómic" />;
+  if (!id || comic === null) return <NotFoundView what="El còmic" />;
   if (!comic)
     return (
       <div className="flex h-screen items-center justify-center gap-2 text-muted-foreground">
-        <Loader2 className="size-5 animate-spin" /> Cargando cómic…
+        <Loader2 className="size-5 animate-spin" /> Carregant el còmic…
       </div>
     );
   return (
@@ -37,7 +37,7 @@ function Visor() {
         </Link>
         <LogoMark className="size-6" />
         <h1 className="truncate text-sm font-semibold">{comic.title}</h1>
-        <span className="text-xs text-muted-foreground">{comic.pageCount} páginas</span>
+        <span className="text-xs text-muted-foreground">{comic.pageCount} pàgines</span>
       </header>
       <div className="min-h-0 flex-1">
         <ComicViewer comicId={comic.id} mode="library" initialPage={Number.isFinite(p) ? Math.max(0, p - 1) : 0} />

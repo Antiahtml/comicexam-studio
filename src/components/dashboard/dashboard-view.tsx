@@ -20,6 +20,7 @@ import {
   Upload,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ExamIllustration } from "./exam-illustration";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/misc";
@@ -52,7 +53,7 @@ export function DashboardView() {
     try {
       setProjects(await listProjects());
     } catch (err) {
-      toast.error("No se han podido cargar los exámenes", { description: (err as Error).message });
+      toast.error("No s'han pogut carregar els exàmens", { description: (err as Error).message });
       setProjects([]);
     }
   }, []);
@@ -71,7 +72,7 @@ export function DashboardView() {
   const create = async () => {
     setBusy(true);
     try {
-      const p = await createProject(newName.trim() || "Examen sin título");
+      const p = await createProject(newName.trim() || "Examen sense títol");
       router.push(`/editor?id=${p.id}`);
     } catch (err) {
       toast.error((err as Error).message);
@@ -82,7 +83,7 @@ export function DashboardView() {
   const duplicate = async (p: ProjectSummaryDTO) => {
     try {
       await duplicateProject(p.id);
-      toast.success("Examen duplicado");
+      toast.success("Examen duplicat");
       void load();
     } catch (err) {
       toast.error((err as Error).message);
@@ -90,11 +91,11 @@ export function DashboardView() {
   };
 
   const remove = async (p: ProjectSummaryDTO) => {
-    const ok = await confirm({ title: `¿Eliminar «${p.name}»?`, description: "Esta acción no se puede deshacer. Los cómics de la biblioteca no se borran.", confirmLabel: "Eliminar", destructive: true });
+    const ok = await confirm({ title: `Vols eliminar «${p.name}»?`, description: "Aquesta acció no es pot desfer. Els còmics de la biblioteca no s'esborren.", confirmLabel: "Elimina", destructive: true });
     if (!ok) return;
     try {
       await deleteProject(p.id);
-      toast.success("Examen eliminado");
+      toast.success("Examen eliminat");
       void load();
     } catch (err) {
       toast.error((err as Error).message);
@@ -112,14 +113,14 @@ export function DashboardView() {
     }
   };
 
-  const importProject = async (data: Blob, what = "Proyecto importado") => {
-    const t = toast.loading("Importando examen…", { description: "Se procesan sus imágenes en tu navegador." });
+  const importProject = async (data: Blob, what = "Projecte importat") => {
+    const t = toast.loading("Important l'examen…", { description: "Les imatges es processen al teu navegador." });
     try {
       const id = await importProjectBundle(new Uint8Array(await data.arrayBuffer()), importOrderedImages);
       toast.success(what, { id: t, description: undefined });
       router.push(`/editor?id=${id}`);
     } catch (err) {
-      toast.error("No se ha podido importar", { id: t, description: (err as Error).message });
+      toast.error("No s'ha pogut importar", { id: t, description: (err as Error).message });
     }
   };
 
@@ -128,8 +129,8 @@ export function DashboardView() {
     setBusy(true);
     try {
       const res = await fetch(withBase("/ejemplo.comicexam"));
-      if (!res.ok) throw new Error("No se ha podido descargar el ejemplo.");
-      await importProject(await res.blob(), "Examen de ejemplo cargado");
+      if (!res.ok) throw new Error("No s'ha pogut descarregar l'exemple.");
+      await importProject(await res.blob(), "Examen d'exemple carregat");
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -142,7 +143,7 @@ export function DashboardView() {
       const bundle = await exportProjectBundle(p.id);
       downloadBlob(bundle.data, `${safeFileName(bundle.name, "examen")}.comicexam`, "application/zip");
     } catch (err) {
-      toast.error("No se ha podido exportar", { description: (err as Error).message });
+      toast.error("No s'ha pogut exportar", { description: (err as Error).message });
     }
   };
 
@@ -154,12 +155,13 @@ export function DashboardView() {
       <section className="relative px-2 py-8 sm:px-6 sm:py-14">
         <div className="relative z-10 max-w-2xl space-y-5">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
-            <Scissors className="size-3.5" /> Exámenes a partir de cómics
+            <Scissors className="size-3.5" /> Exàmens a partir de còmics
           </p>
           <h1 className="text-display text-[2.6rem] sm:text-6xl">
-            Crea exámenes visuales con <span className="font-comic text-[1.1em] font-normal tracking-wide text-[#b45309] dark:text-comic">viñetas</span> de tus cómics
+            Crea exàmens visuals amb{" "}
+            <em className="rounded-sm bg-[linear-gradient(transparent_62%,var(--accent)_62%)] px-1 font-normal italic">vinyetes</em> dels teus còmics
           </h1>
-          <p className="max-w-xl text-lg text-pretty text-muted-foreground">Importa un CBR o CBZ, recorta las viñetas que necesites, colócalas en hojas A4 junto a tus preguntas y exporta un PDF listo para imprimir.</p>
+          <p className="max-w-xl text-lg text-pretty text-muted-foreground">Importa un CBR o CBZ, retalla les vinyetes que necessitis, col·loca-les en fulls A4 amb les teves preguntes i exporta un PDF a punt per imprimir.</p>
           {/* Una sola acción principal; el resto, en un segundo plano visual. */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <Button
@@ -170,11 +172,11 @@ export function DashboardView() {
               }}
               data-testid="new-exam"
             >
-              <Plus /> Nuevo examen
+              <Plus /> Nou examen
             </Button>
             <Button size="lg" variant="glass" asChild>
               <Link href="/biblioteca">
-                <BookImage /> Biblioteca de cómics
+                <BookImage /> Biblioteca de còmics
               </Link>
             </Button>
             <button
@@ -197,39 +199,33 @@ export function DashboardView() {
             />
           </div>
         </div>
-        <div className="pointer-events-none absolute right-4 bottom-2 hidden rotate-6 xl:block" aria-hidden>
-          <div className="grid w-72 grid-cols-2 gap-2 rounded-xl border-4 border-slate-900 bg-card p-2 shadow-xl">
-            <div className="col-span-2 h-20 rounded border-2 border-slate-900 bg-amber-200" />
-            <div className="h-24 rounded border-2 border-slate-900 bg-sky-200" />
-            <div className="h-24 rounded border-2 border-slate-900 bg-rose-200" />
-          </div>
-        </div>
+        <ExamIllustration className="pointer-events-none absolute top-1/2 right-6 hidden -translate-y-1/2 xl:block" />
       </section>
 
       {/* Exámenes recientes */}
-      <section className="space-y-4">
+      <section id="examens" className="scroll-mt-24 space-y-4">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-headline text-3xl">Exámenes recientes</h2>
-            <p className="text-sm text-muted-foreground">Se guardan automáticamente mientras trabajas.</p>
+            <h2 className="text-headline text-3xl">Exàmens recents</h2>
+            <p className="text-sm text-muted-foreground">Es desen automàticament mentre treballes.</p>
           </div>
         </div>
         {projects === null ? (
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Cargando…
+            <Loader2 className="size-4 animate-spin" /> Carregant…
           </div>
         ) : projects.length === 0 ? (
           <EmptyState
             icon={<FileStack />}
-            title="Aún no has creado ningún examen"
-            description="Empieza con un examen en blanco: incluye una cabecera con título, nombre del alumno y nota."
+            title="Encara no has creat cap examen"
+            description="Comença amb un examen en blanc: inclou una capçalera amb títol, nom de l'alumne i nota."
             action={
               <div className="flex flex-wrap justify-center gap-2">
                 <Button onClick={() => setCreating(true)}>
-                  <Plus /> Crear mi primer examen
+                  <Plus /> Crea el meu primer examen
                 </Button>
                 <Button variant="outline" onClick={loadExample} disabled={busy} data-testid="load-example">
-                  {busy ? <Loader2 className="animate-spin" /> : <Sparkles />} Ver un examen de ejemplo
+                  {busy ? <Loader2 className="animate-spin" /> : <Sparkles />} Veure un examen d’exemple
                 </Button>
               </div>
             }
@@ -245,7 +241,7 @@ export function DashboardView() {
                 className="flex aspect-[210/297] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-input bg-card/50 text-muted-foreground transition-[color,border-color,translate,scale] hover:border-primary hover:text-primary motion-safe:active:scale-[0.98]"
               >
                 <Plus className="size-8" />
-                <span className="text-sm font-medium">Nuevo examen</span>
+                <span className="text-sm font-medium">Nou examen</span>
               </button>
             </li>
             {projects.map((p) => (
@@ -272,20 +268,20 @@ export function DashboardView() {
                       {p.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {p.pageCount} hoja{p.pageCount === 1 ? "" : "s"} · {p.elementCount} elementos · {relativeTime(p.updatedAt)}
+                      {p.pageCount} full{p.pageCount === 1 ? "" : "s"} · {p.elementCount} element{p.elementCount === 1 ? "" : "s"} · {relativeTime(p.updatedAt)}
                     </p>
                   </div>
                 </Link>
                 <DropdownMenu open={menuFor === p.id} onOpenChange={(o) => setMenuFor(o ? p.id : null)}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="iconSm" className="hover-reveal absolute top-2 right-2 shadow-sm" aria-label="Acciones">
+                    <Button variant="outline" size="iconSm" className="hover-reveal absolute top-2 right-2 shadow-sm" aria-label="Accions">
                       <MoreVertical />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link href={`/editor?id=${p.id}`}>
-                        <SquarePen /> Abrir
+                        <SquarePen /> Obre
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -294,17 +290,17 @@ export function DashboardView() {
                         setNewName(p.name);
                       }}
                     >
-                      <Pencil /> Cambiar nombre
+                      <Pencil /> Canvia el nom
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => duplicate(p)}>
-                      <Copy /> Duplicar
+                      <Copy /> Duplica
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => exportProject(p)}>
-                      <Download /> Exportar (.comicexam)
+                      <Download /> Exporta (.comicexam)
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem variant="destructive" onSelect={() => remove(p)}>
-                      <Trash2 /> Eliminar
+                      <Trash2 /> Elimina
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -318,8 +314,8 @@ export function DashboardView() {
       <section className="space-y-4">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-headline text-3xl">Biblioteca de cómics</h2>
-            <p className="text-sm text-muted-foreground">{readyComics.length} cómic{readyComics.length === 1 ? "" : "s"} disponibles.</p>
+            <h2 className="text-headline text-3xl">Biblioteca de còmics</h2>
+            <p className="text-sm text-muted-foreground">{readyComics.length} {readyComics.length === 1 ? "còmic disponible" : "còmics disponibles"}.</p>
           </div>
           <Button variant="outline" asChild>
             <Link href="/biblioteca">
@@ -328,7 +324,7 @@ export function DashboardView() {
           </Button>
         </div>
         {readyComics.length === 0 ? (
-          <EmptyState icon={<BookImage />} title="Biblioteca vacía" description="Importa tu primer cómic (.cbr o .cbz) para empezar a seleccionar viñetas." action={<Button asChild><Link href="/biblioteca">Ir a la biblioteca</Link></Button>} />
+          <EmptyState icon={<BookImage />} title="Biblioteca buida" description="Importa el teu primer còmic (.cbr o .cbz) per començar a seleccionar vinyetes." action={<Button asChild><Link href="/biblioteca">Ves a la biblioteca</Link></Button>} />
         ) : (
           <ul className="flex gap-4 overflow-x-auto pb-2 thin-scroll">
             {readyComics.slice(0, 12).map((c) => (
@@ -349,23 +345,23 @@ export function DashboardView() {
       <Dialog open={creating} onOpenChange={setCreating}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nuevo examen</DialogTitle>
-            <DialogDescription>Ponle un nombre. Podrás cambiarlo en cualquier momento.</DialogDescription>
+            <DialogTitle>Nou examen</DialogTitle>
+            <DialogDescription>Posa-li un nom. Podràs canviar-lo en qualsevol moment.</DialogDescription>
           </DialogHeader>
           <Input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="Comprensión lectora — Cómic"
+            placeholder="Comprensió lectora — Còmic"
             autoFocus
             onKeyDown={(e) => e.key === "Enter" && create()}
             data-testid="new-exam-name"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreating(false)}>
-              Cancelar
+              Cancel·la
             </Button>
             <Button onClick={create} disabled={busy} data-testid="create-exam">
-              {busy && <Loader2 className="animate-spin" />} Crear examen
+              {busy && <Loader2 className="animate-spin" />} Crea l’examen
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -374,14 +370,14 @@ export function DashboardView() {
       <Dialog open={!!renaming} onOpenChange={(o) => !o && setRenaming(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cambiar nombre</DialogTitle>
+            <DialogTitle>Canvia el nom</DialogTitle>
           </DialogHeader>
           <Input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && rename()} autoFocus />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenaming(null)}>
-              Cancelar
+              Cancel·la
             </Button>
-            <Button onClick={rename}>Guardar</Button>
+            <Button onClick={rename}>Desa</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

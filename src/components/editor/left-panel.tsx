@@ -55,14 +55,14 @@ import { pageToSource, selectionToSource, type ComicDetail, type ComicSummary, t
 import type { ImageSource } from "@/lib/document/types";
 
 const TABS: { id: LeftTab; label: string; icon: LucideIcon }[] = [
-  { id: "comics", label: "Cómics", icon: BookImage },
-  { id: "panels", label: "Viñetas", icon: Scissors },
-  { id: "text", label: "Texto", icon: Type },
-  { id: "questions", label: "Preguntas", icon: MessageSquareText },
-  { id: "answers", label: "Respuestas", icon: NotebookPen },
-  { id: "shapes", label: "Formas", icon: Shapes },
-  { id: "uploads", label: "Imágenes", icon: ImageUp },
-  { id: "document", label: "Documento", icon: Settings2 },
+  { id: "comics", label: "Còmics", icon: BookImage },
+  { id: "panels", label: "Vinyetes", icon: Scissors },
+  { id: "text", label: "Text", icon: Type },
+  { id: "questions", label: "Preguntes", icon: MessageSquareText },
+  { id: "answers", label: "Respostes", icon: NotebookPen },
+  { id: "shapes", label: "Formes", icon: Shapes },
+  { id: "uploads", label: "Imatges", icon: ImageUp },
+  { id: "document", label: "Document", icon: Settings2 },
 ];
 
 /** Eventos para refrescar listas cuando cambian las viñetas en el visor. */
@@ -90,10 +90,10 @@ export function LeftPanel() {
       const after = useEditor.getState();
       const ids = after.lastInserted?.ids ?? [];
       const pageIdx = after.doc.pages.findIndex((p) => p.id === after.activePageId);
-      toast.success(sources.length === 1 ? "Imagen añadida al examen" : `${sources.length} imágenes añadidas`, {
-        description: `En la hoja ${pageIdx + 1}. Puedes seguir seleccionando viñetas.`,
+      toast.success(sources.length === 1 ? "Imatge afegida a l'examen" : `${sources.length} imatges afegides`, {
+        description: `Al full ${pageIdx + 1}. Pots continuar seleccionant vinyetes.`,
         action: {
-          label: "Ver en el examen",
+          label: "Veure a l'examen",
           onClick: async () => {
             if (await closeViewer()) useEditor.getState().reveal(ids);
           },
@@ -105,7 +105,7 @@ export function LeftPanel() {
 
   return (
     <div className="flex h-full min-h-0">
-      <nav className="flex w-[68px] shrink-0 flex-col items-center gap-1 border-r bg-card py-2" aria-label="Herramientas">
+      <nav className="flex w-[68px] shrink-0 flex-col items-center gap-1 border-r bg-card py-2" aria-label="Eines">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -124,10 +124,10 @@ export function LeftPanel() {
       <div className="thin-scroll flex w-[272px] min-h-0 flex-col overflow-y-auto border-r bg-card">
         {tab === "comics" && <ComicsTab onOpen={(comicId, page) => setViewer({ comicId, page })} />}
         {tab === "panels" && <PanelsTab />}
-        {tab === "text" && <TemplatesTab title="Texto" items={TEXT_ITEMS} />}
-        {tab === "questions" && <TemplatesTab title="Preguntas" items={QUESTION_ITEMS} hint="Las preguntas se numeran solas según su posición. Puedes fijar un número manual en Propiedades." />}
-        {tab === "answers" && <TemplatesTab title="Espacios de respuesta" items={ANSWER_ITEMS} />}
-        {tab === "shapes" && <TemplatesTab title="Formas y separadores" items={SHAPE_ITEMS} />}
+        {tab === "text" && <TemplatesTab title="Text" items={TEXT_ITEMS} />}
+        {tab === "questions" && <TemplatesTab title="Preguntes" items={QUESTION_ITEMS} hint="Les preguntes es numeren soles segons la posició. Pots fixar un número manual a Propietats." />}
+        {tab === "answers" && <TemplatesTab title="Espais de resposta" items={ANSWER_ITEMS} />}
+        {tab === "shapes" && <TemplatesTab title="Formes i separadors" items={SHAPE_ITEMS} />}
         {tab === "uploads" && <UploadsTab />}
         {tab === "document" && <DocumentSettings />}
       </div>
@@ -148,7 +148,7 @@ export function LeftPanel() {
           // Un clic fuera no cierra el visor (se perdería el trabajo por accidente).
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogTitle className="border-b px-4 py-3 pr-12 text-sm">Visor de cómics · selecciona viñetas y añádelas a la hoja que estás viendo</DialogTitle>
+          <DialogTitle className="border-b px-4 py-3 pr-12 text-sm">Visor de còmics · selecciona vinyetes i afegeix-les al full que estàs veient</DialogTitle>
           <div className="min-h-0 flex-1">
             {viewer && <ComicViewer ref={viewerRef} comicId={viewer.comicId} mode="editor" initialPage={viewer.page} onInsert={onInsert} />}
           </div>
@@ -192,16 +192,16 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
     return (
       <div className="flex min-h-0 flex-col">
         <PanelHeader title={openComic.title}>
-          <Button variant="ghost" size="iconSm" onClick={() => setOpenComic(null)} aria-label="Volver">
+          <Button variant="ghost" size="iconSm" onClick={() => setOpenComic(null)} aria-label="Torna">
             <ArrowLeft />
           </Button>
         </PanelHeader>
         <div className="space-y-3 p-3">
           <Button className="w-full" onClick={() => onOpen(openComic.id, 0)} data-testid="open-viewer">
-            <Scissors /> Abrir visor y seleccionar viñetas
+            <Scissors /> Obre el visor i selecciona vinyetes
           </Button>
           <p className="text-2xs leading-snug text-muted-foreground">
-            Haz clic en una página para abrirla en el visor, o <strong>arrástrala</strong> a una hoja para insertarla completa.
+            Fes clic en una pàgina per obrir-la al visor, o <strong>arrossega-la</strong> a un full per inserir-la sencera.
           </p>
           {!detail ? (
             <div className="flex justify-center py-6">
@@ -222,7 +222,7 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
                   data-testid="comic-page-thumb"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={pageImageUrl(p.id, "thumb")} alt={`Página ${i + 1}`} loading="lazy" className="w-full" style={{ aspectRatio: `${p.width}/${p.height}` }} draggable={false} />
+                  <img src={pageImageUrl(p.id, "thumb")} alt={`Pàgina ${i + 1}`} loading="lazy" className="w-full" style={{ aspectRatio: `${p.width}/${p.height}` }} draggable={false} />
                   <span className="absolute bottom-1 left-1 rounded bg-slate-900/75 px-1.5 text-2xs font-semibold text-white">{i + 1}</span>
                 </button>
               ))}
@@ -236,14 +236,14 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
   const list = (comics ?? []).filter((c) => c.format !== "images" && c.title.toLowerCase().includes(q.toLowerCase()));
   return (
     <div>
-      <PanelHeader title="Cómics" />
+      <PanelHeader title="Còmics" />
       <div className="space-y-3 p-3">
         <ImportDropzone onFiles={importFiles} compact />
         <ImportTasks tasks={tasks} onDismiss={dismiss} />
         {(comics?.length ?? 0) > 4 && (
           <div className="relative">
             <Search className="absolute top-2 left-2.5 size-4 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar cómic…" className="h-8 pl-8" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca un còmic…" className="h-8 pl-8" />
           </div>
         )}
         {comics === null ? (
@@ -251,7 +251,7 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           </div>
         ) : list.length === 0 ? (
-          <p className="py-4 text-center text-xs text-muted-foreground">Todavía no hay cómics. Importa un CBR o CBZ.</p>
+          <p className="py-4 text-center text-xs text-muted-foreground">Encara no hi ha còmics. Importa un CBR o CBZ.</p>
         ) : (
           <ul className="space-y-2">
             {list.map((c) => (
@@ -269,7 +269,7 @@ function ComicsTab({ onOpen }: { onOpen: (comicId: string, page: number) => void
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{c.title}</p>
                     <p className="text-2xs text-muted-foreground">
-                      {c.status === "processing" ? `${c.stage} ${c.progress} %` : c.status === "error" ? "Error al importar" : `${c.pageCount} páginas`}
+                      {c.status === "processing" ? `${c.stage} ${c.progress} %` : c.status === "error" ? "Error en importar" : `${c.pageCount} pàgines`}
                     </p>
                   </div>
                 </button>
@@ -312,7 +312,7 @@ function PanelsTab() {
 
   return (
     <div className="flex min-h-0 flex-col">
-      <PanelHeader title="Viñetas guardadas" />
+      <PanelHeader title="Vinyetes desades" />
       <div className="space-y-3 p-3">
         {items === null ? (
           <div className="flex justify-center py-6">
@@ -321,15 +321,15 @@ function PanelsTab() {
         ) : items.length === 0 ? (
           <EmptyState
             icon={<Scissors />}
-            title="Sin viñetas todavía"
-            description="Abre un cómic en la pestaña Cómics, selecciona viñetas y guárdalas en la biblioteca."
+            title="Encara no hi ha vinyetes"
+            description="Obre un còmic a la pestanya Còmics, selecciona vinyetes i desa-les a la biblioteca."
             className="px-3 py-8"
           />
         ) : (
           <>
             {comics.length > 1 && (
               <select className="h-8 w-full rounded-md border border-input bg-card px-2 text-sm" value={filter} onChange={(e) => setFilter(e.target.value)}>
-                <option value="all">Todos los cómics</option>
+                <option value="all">Tots els còmics</option>
                 {comics.map(([id, title]) => (
                   <option key={id} value={id}>
                     {title}
@@ -337,7 +337,7 @@ function PanelsTab() {
                 ))}
               </select>
             )}
-            <p className="text-2xs text-muted-foreground">Haz clic para insertar o arrastra a una hoja. Marca varias para colocarlas una junto a otra.</p>
+            <p className="text-2xs text-muted-foreground">Fes clic per inserir o arrossega a un full. Marca’n diverses per col·locar-les una al costat de l’altra.</p>
             {checked.size >= 2 && (
               <Button
                 size="sm"
@@ -381,7 +381,7 @@ function PanelsTab() {
                         return n;
                       })
                     }
-                    aria-label={`Marcar ${s.label}`}
+                    aria-label={`Marca ${s.label}`}
                   />
                 </div>
               ))}
@@ -403,40 +403,40 @@ interface TemplateItem {
 }
 
 const TEXT_ITEMS: TemplateItem[] = [
-  { label: "Cabecera del examen", description: "Título, nombre, nota e instrucciones", icon: PanelTop, template: { kind: "examHeader" } },
-  { label: "Título", icon: Heading1, template: { kind: "text", preset: "title" } },
-  { label: "Subtítulo", icon: Heading2, template: { kind: "text", preset: "subtitle" } },
-  { label: "Párrafo", icon: AlignLeft, template: { kind: "text", preset: "paragraph" } },
-  { label: "Instrucciones", description: "Recuadro con fondo gris", icon: FileText, template: { kind: "text", preset: "instructions" } },
+  { label: "Capçalera de l'examen", description: "Títol, nom, nota i instruccions", icon: PanelTop, template: { kind: "examHeader" } },
+  { label: "Títol", icon: Heading1, template: { kind: "text", preset: "title" } },
+  { label: "Subtítol", icon: Heading2, template: { kind: "text", preset: "subtitle" } },
+  { label: "Paràgraf", icon: AlignLeft, template: { kind: "text", preset: "paragraph" } },
+  { label: "Instruccions", description: "Requadre amb fons gris", icon: FileText, template: { kind: "text", preset: "instructions" } },
   { label: "Nota destacada", icon: StickyNote, template: { kind: "text", preset: "note" } },
 ];
 
 const QUESTION_ITEMS: TemplateItem[] = [
-  { label: "Respuesta corta", description: "Una línea para responder", icon: TextCursorInput, template: { kind: "question", question: "short" } },
-  { label: "Respuesta larga", description: "Varias líneas", icon: AlignLeft, template: { kind: "question", question: "long" } },
-  { label: "Opción múltiple", description: "a), b), c)…", icon: ListChecks, template: { kind: "question", question: "multiple" } },
-  { label: "Verdadero o falso", description: "Afirmaciones con V / F", icon: CheckSquare, template: { kind: "question", question: "truefalse" } },
-  { label: "Relacionar conceptos", description: "Unir con flechas", icon: Link2, template: { kind: "question", question: "match" } },
-  { label: "Pregunta sobre imagen", description: "Viñeta + líneas de respuesta", icon: ImageIcon, template: { kind: "question", question: "image" } },
+  { label: "Resposta curta", description: "Una línia per respondre", icon: TextCursorInput, template: { kind: "question", question: "short" } },
+  { label: "Resposta llarga", description: "Diverses línies", icon: AlignLeft, template: { kind: "question", question: "long" } },
+  { label: "Opció múltiple", description: "a), b), c)…", icon: ListChecks, template: { kind: "question", question: "multiple" } },
+  { label: "Vertader o fals", description: "Afirmacions amb V / F", icon: CheckSquare, template: { kind: "question", question: "truefalse" } },
+  { label: "Relacionar conceptes", description: "Unir amb fletxes", icon: Link2, template: { kind: "question", question: "match" } },
+  { label: "Pregunta sobre imatge", description: "Vinyeta + línies de resposta", icon: ImageIcon, template: { kind: "question", question: "image" } },
 ];
 
 const ANSWER_ITEMS: TemplateItem[] = [
-  { label: "2 líneas", icon: Rows3, template: { kind: "lines", count: 2 } },
-  { label: "4 líneas", icon: Rows3, template: { kind: "lines", count: 4 } },
-  { label: "8 líneas", icon: Rows3, template: { kind: "lines", count: 8 } },
-  { label: "Cuadro vacío", icon: SquareDashed, template: { kind: "box", variant: "box" } },
-  { label: "Área de respuesta", description: "Con etiqueta «Respuesta:»", icon: RectangleHorizontal, template: { kind: "box", variant: "area" } },
-  { label: "Cuadrícula", description: "Para dibujar o calcular", icon: Grid3x3, template: { kind: "box", variant: "grid" } },
-  { label: "Tabla 3 × 3", icon: Table, template: { kind: "table", rows: 3, cols: 3 } },
-  { label: "Tabla 4 × 2", icon: Table, template: { kind: "table", rows: 4, cols: 2 } },
+  { label: "2 línies", icon: Rows3, template: { kind: "lines", count: 2 } },
+  { label: "4 línies", icon: Rows3, template: { kind: "lines", count: 4 } },
+  { label: "8 línies", icon: Rows3, template: { kind: "lines", count: 8 } },
+  { label: "Quadre buit", icon: SquareDashed, template: { kind: "box", variant: "box" } },
+  { label: "Àrea de resposta", description: "Amb etiqueta «Resposta:»", icon: RectangleHorizontal, template: { kind: "box", variant: "area" } },
+  { label: "Quadrícula", description: "Per dibuixar o calcular", icon: Grid3x3, template: { kind: "box", variant: "grid" } },
+  { label: "Taula 3 × 3", icon: Table, template: { kind: "table", rows: 3, cols: 3 } },
+  { label: "Taula 4 × 2", icon: Table, template: { kind: "table", rows: 4, cols: 2 } },
 ];
 
 const SHAPE_ITEMS: TemplateItem[] = [
-  { label: "Separador de sección", icon: Sparkles, template: { kind: "shape", shape: "divider" } },
-  { label: "Línea horizontal", icon: Minus, template: { kind: "shape", shape: "hline" } },
-  { label: "Línea vertical", icon: Minus, template: { kind: "shape", shape: "vline" } },
-  { label: "Rectángulo", icon: RectangleHorizontal, template: { kind: "shape", shape: "rect" } },
-  { label: "Elipse", icon: Circle, template: { kind: "shape", shape: "ellipse" } },
+  { label: "Separador de secció", icon: Sparkles, template: { kind: "shape", shape: "divider" } },
+  { label: "Línia horitzontal", icon: Minus, template: { kind: "shape", shape: "hline" } },
+  { label: "Línia vertical", icon: Minus, template: { kind: "shape", shape: "vline" } },
+  { label: "Rectangle", icon: RectangleHorizontal, template: { kind: "shape", shape: "rect" } },
+  { label: "El·lipse", icon: Circle, template: { kind: "shape", shape: "ellipse" } },
 ];
 
 function TemplatesTab({ title, items, hint }: { title: string; items: TemplateItem[]; hint?: string }) {
@@ -466,7 +466,7 @@ function TemplatesTab({ title, items, hint }: { title: string; items: TemplateIt
           </button>
         ))}
         {hint && <p className="pt-1 text-2xs leading-snug text-muted-foreground">{hint}</p>}
-        <p className="pt-1 text-2xs text-muted-foreground">Clic para añadir a la hoja activa, o arrastra a cualquier hoja.</p>
+        <p className="pt-1 text-2xs text-muted-foreground">Clic per afegir al full actiu, o arrossega a qualsevol full.</p>
       </div>
     </div>
   );
@@ -490,7 +490,7 @@ function UploadsTab() {
   }, [collections]);
   return (
     <div>
-      <PanelHeader title="Imágenes propias" />
+      <PanelHeader title="Imatges pròpies" />
       <div className="space-y-3 p-3">
         <ImportDropzone onFiles={(f) => importFiles(f)} compact />
         <ImportTasks tasks={tasks} onDismiss={dismiss} />
@@ -499,7 +499,7 @@ function UploadsTab() {
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           </div>
         ) : pages.length === 0 ? (
-          <p className="text-center text-xs text-muted-foreground">Sube imágenes JPG, PNG o WebP para usarlas en tus exámenes.</p>
+          <p className="text-center text-xs text-muted-foreground">Puja imatges JPG, PNG o WebP per fer-les servir als teus exàmens.</p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {pages.map(({ comic, page }) => (

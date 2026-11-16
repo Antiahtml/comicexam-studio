@@ -37,7 +37,7 @@ const Thumb = memo(function Thumb({ page, index, ctx, active }: { page: ExamPage
           useEditor.getState().setActivePage(page.id);
           window.dispatchEvent(new CustomEvent("comicexam:scroll-to-page", { detail: page.id }));
         }}
-        aria-label={`Ir a la hoja ${index + 1}`}
+        aria-label={`Ves al full ${index + 1}`}
       >
         <div className="pointer-events-none origin-top-left" style={{ transform: `scale(${scale})` }}>
           <PageSurface doc={ctx.doc} page={page} pageIndex={index} ctx={ctx} />
@@ -77,10 +77,10 @@ export function PageStrip() {
         onClick={() => useEditor.getState().addPage(doc.pages.length - 1)}
         className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-sm border-2 border-dashed border-slate-300 text-muted-foreground hover:border-primary hover:text-foreground"
         style={{ width: THUMB_W, height: (pageSize(doc.settings.orientation).height / pageSize(doc.settings.orientation).width) * THUMB_W }}
-        aria-label="Añadir hoja"
+        aria-label="Afegeix un full"
       >
         <Plus className="size-5" />
-        <span className="text-2xs">Hoja</span>
+        <span className="text-2xs">Full</span>
       </button>
     </div>
   );

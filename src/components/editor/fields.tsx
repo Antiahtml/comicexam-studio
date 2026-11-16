@@ -146,7 +146,7 @@ export function ColorField({ value, onChange, allowNone, label }: { value: strin
       </label>
       <input
         value={value ?? ""}
-        placeholder={allowNone ? "Sin color" : "#000000"}
+        placeholder={allowNone ? "Sense color" : "#000000"}
         onChange={(e) => {
           const v = e.target.value.trim();
           if (!v && allowNone) onChange(null);
@@ -157,7 +157,7 @@ export function ColorField({ value, onChange, allowNone, label }: { value: strin
       />
       {allowNone && value && (
         <button className="shrink-0 text-2xs text-muted-foreground hover:text-foreground" onClick={() => onChange(null)}>
-          Quitar
+          Treu
         </button>
       )}
     </div>

@@ -47,18 +47,18 @@ export function useComicImport(onComplete?: (comicId: string) => void) {
 
   const track = useCallback(async (key: string, comicId: string, done: Promise<{ type: "done" | "error"; message?: string }>) => {
     keyByComic.current.set(comicId, key);
-    update(key, { phase: "processing", progress: 1, message: "Procesando…", comicId });
+    update(key, { phase: "processing", progress: 1, message: "Processant…", comicId });
     onCompleteRef.current?.(comicId);
     const res = await done;
     keyByComic.current.delete(comicId);
     const comic = await getComic(comicId);
     if (res.type === "done" && comic) {
-      update(key, { phase: "done", progress: 100, message: `${comic.pageCount} página${comic.pageCount === 1 ? "" : "s"} importada${comic.pageCount === 1 ? "" : "s"}` });
-      toast.success(`«${comic.title}» importado`, { description: `${comic.pageCount} páginas listas.` });
+      update(key, { phase: "done", progress: 100, message: `${comic.pageCount} pàgina${comic.pageCount === 1 ? "" : "es"} importada${comic.pageCount === 1 ? "" : "es"}` });
+      toast.success(`«${comic.title}» importat`, { description: `${comic.pageCount} pàgines a punt.` });
     } else {
-      const msg = ("message" in res && res.message) || comic?.error || "Error al procesar el archivo";
+      const msg = ("message" in res && res.message) || comic?.error || "Error en processar el fitxer";
       update(key, { phase: "error", message: msg });
-      toast.error("No se ha podido importar el archivo", { description: msg });
+      toast.error("No s'ha pogut importar el fitxer", { description: msg });
     }
     onCompleteRef.current?.(comicId);
   }, []);
@@ -70,13 +70,13 @@ export function useComicImport(onComplete?: (comicId: string) => void) {
       const images = files.filter((f) => !archives.includes(f) && (IMAGE_RE.test(f.name) || /^image\/(jpeg|png|webp)$/.test(f.type)));
       const rejected = files.filter((f) => !archives.includes(f) && !images.includes(f));
       if (rejected.length) {
-        toast.error("Formato no compatible", { description: `${rejected.map((f) => f.name).join(", ")}. Usa CBR, CBZ, JPG, PNG o WebP.` });
+        toast.error("Format no compatible", { description: `${rejected.map((f) => f.name).join(", ")}. Utilitza CBR, CBZ, JPG, PNG o WebP.` });
       }
       for (const file of archives) {
         const key = `t${++counter.current}`;
-        setTasks((ts) => [{ key, name: file.name, phase: "uploading", progress: 0, message: "En cola…" }, ...ts]);
+        setTasks((ts) => [{ key, name: file.name, phase: "uploading", progress: 0, message: "En cua…" }, ...ts]);
         if (file.size > LIMITS.maxUploadBytes) {
-          update(key, { phase: "error", message: "El archivo supera el tamaño máximo permitido (1 GB)." });
+          update(key, { phase: "error", message: "El fitxer supera la mida màxima permesa (1 GB)." });
           continue;
         }
         try {
@@ -88,8 +88,8 @@ export function useComicImport(onComplete?: (comicId: string) => void) {
       }
       if (images.length) {
         const key = `t${++counter.current}`;
-        const name = images.length === 1 ? images[0].name : `${images.length} imágenes`;
-        setTasks((ts) => [{ key, name, phase: "uploading", progress: 0, message: "En cola…" }, ...ts]);
+        const name = images.length === 1 ? images[0].name : `${images.length} imatges`;
+        setTasks((ts) => [{ key, name, phase: "uploading", progress: 0, message: "En cua…" }, ...ts]);
         try {
           const { comicId, done } = await importImageFiles(images);
           void track(key, comicId, done);

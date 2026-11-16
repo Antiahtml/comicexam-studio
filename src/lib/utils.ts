@@ -14,14 +14,14 @@ export function formatBytes(bytes: number): string {
 
 export function formatDate(d: string | Date): string {
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleString("ca-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 export function relativeTime(d: string | Date): string {
   const date = typeof d === "string" ? new Date(d) : d;
   const diff = (Date.now() - date.getTime()) / 1000;
-  const rtf = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
-  if (diff < 60) return "hace un momento";
+  const rtf = new Intl.RelativeTimeFormat("ca", { numeric: "auto" });
+  if (diff < 60) return "fa un moment";
   if (diff < 3600) return rtf.format(-Math.round(diff / 60), "minute");
   if (diff < 86400) return rtf.format(-Math.round(diff / 3600), "hour");
   if (diff < 86400 * 30) return rtf.format(-Math.round(diff / 86400), "day");

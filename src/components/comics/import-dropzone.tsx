@@ -44,11 +44,11 @@ export function ImportDropzone({
         <Upload className={compact ? "size-4" : "size-6"} />
       </div>
       <div className="space-y-1">
-        <p className={cn("font-semibold", compact && "text-sm")}>Arrastra aquí tus cómics</p>
-        <p className="text-xs text-muted-foreground">CBR, CBZ o imágenes JPG, PNG y WebP</p>
+        <p className={cn("font-semibold", compact && "text-sm")}>Arrossega aquí els teus còmics</p>
+        <p className="text-xs text-muted-foreground">CBR, CBZ o imatges JPG, PNG i WebP</p>
       </div>
       <Button size={compact ? "sm" : "default"} onClick={() => input.current?.click()}>
-        <FileArchive /> Seleccionar archivos
+        <FileArchive /> Selecciona fitxers
       </Button>
       <input
         ref={input}
@@ -84,7 +84,7 @@ export function ImportTasks({ tasks, onDismiss }: { tasks: ImportTask[]; onDismi
               {t.name}
             </span>
             {(t.phase === "done" || t.phase === "error") && (
-              <button className="rounded p-0.5 text-muted-foreground hover:bg-muted" onClick={() => onDismiss(t.key)} aria-label="Descartar">
+              <button className="rounded p-0.5 text-muted-foreground hover:bg-muted" onClick={() => onDismiss(t.key)} aria-label="Descarta">
                 <X className="size-3.5" />
               </button>
             )}

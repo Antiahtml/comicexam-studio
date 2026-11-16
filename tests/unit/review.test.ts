@@ -48,7 +48,7 @@ describe("revisión antes de exportar", () => {
     doc.pages[0].elements.push(q);
     doc.meta.totalScore = 10;
     const issue = reviewDocument(doc).find((i) => i.kind === "totalMismatch");
-    expect(issue?.message).toContain("suman 2,5");
+    expect(issue?.message).toContain("sumen 2,5");
     doc.meta.totalScore = 2.5;
     expect(kinds(doc)).not.toContain("totalMismatch");
   });
@@ -87,7 +87,7 @@ describe("revisión antes de exportar", () => {
     const doc = createDefaultDocument();
     const q = createQuestion("short");
     doc.pages[0].elements.push(q);
-    expect(domIssue(doc, "clipped", q.id)?.message).toMatch(/^La pregunta 1 no cabe/);
+    expect(domIssue(doc, "clipped", q.id)?.message).toMatch(/^La pregunta 1 no hi cap/);
     expect(domIssue(doc, "missingImage", "no-existe")).toBeNull();
   });
 });

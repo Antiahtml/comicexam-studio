@@ -37,7 +37,7 @@ async function resized(bitmap: ImageBitmap, maxWidth: number, quality: number): 
 
 export async function processImage(data: Uint8Array): Promise<ProcessedImage> {
   const kind = detectImage(data.subarray(0, 32));
-  if (!kind) throw new ImageError("El archivo no es una imagen válida o su formato no es compatible.");
+  if (!kind) throw new ImageError("El fitxer no és una imatge vàlida o el seu format no és compatible.");
   const pass = PASSTHROUGH_IMAGE[kind];
   const mimeIn = pass?.mime ?? `image/${kind}`;
   const source = new Blob([data as BlobPart], { type: mimeIn });
@@ -45,10 +45,10 @@ export async function processImage(data: Uint8Array): Promise<ProcessedImage> {
   try {
     bitmap = await createImageBitmap(source);
   } catch {
-    throw new ImageError("La imagen está dañada o su formato no se puede abrir en este navegador.");
+    throw new ImageError("La imatge està malmesa o el seu format no es pot obrir en aquest navegador.");
   }
   try {
-    if (bitmap.width * bitmap.height > LIMITS.maxImagePixels) throw new ImageError("La imagen es demasiado grande.");
+    if (bitmap.width * bitmap.height > LIMITS.maxImagePixels) throw new ImageError("La imatge és massa gran.");
     // Se conserva el original (JPG/PNG/WebP). Otros formatos se convierten a PNG sin pérdida.
     let original: Blob = source;
     let mime = mimeIn;

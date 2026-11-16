@@ -327,6 +327,7 @@
   /* Solo <html> lleva el fondo: así el degradado fijo (z-index negativo) queda visible bajo el contenido. */
   html {
     @apply bg-background;
+    scroll-behavior: smooth;
   }
   html,
   body {

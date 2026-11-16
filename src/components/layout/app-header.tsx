@@ -9,8 +9,9 @@ import { ThemeToggle } from "./theme";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Exámenes", icon: LayoutDashboard },
-  { href: "/biblioteca", label: "Biblioteca de cómics", icon: BookImage },
+  // «Exàmens» lleva a la lista de exàmens de l'inici (ancla), no solo a la parte superior de la página.
+  { href: "/#examens", label: "Exàmens", icon: LayoutDashboard, active: (p: string) => p === "/" },
+  { href: "/biblioteca", label: "Biblioteca de còmics", icon: BookImage, active: (p: string) => p.startsWith("/biblioteca") },
 ];
 
 /**
@@ -37,13 +38,13 @@ export function AppHeader() {
       )}
     >
       <div className="flex h-full items-center justify-between gap-3 py-2 pr-2 pl-4">
-        <Link href="/" aria-label="Inicio" className="rounded-full focus-visible:ring-[3px] focus-visible:ring-ring/40 focus-visible:outline-none">
+        <Link href="/" aria-label="Inici" className="rounded-full focus-visible:ring-[3px] focus-visible:ring-ring/40 focus-visible:outline-none">
           <Logo />
         </Link>
         <div className="flex items-center gap-1">
           <nav className="flex items-center gap-1" aria-label="Principal">
             {NAV.map((n) => {
-              const active = n.href === "/" ? pathname === "/" : pathname.startsWith(n.href);
+              const active = n.active(pathname);
               return (
                 <Link
                   key={n.href}

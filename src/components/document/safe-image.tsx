@@ -37,8 +37,8 @@ export function SafeImage({ src, alt, style }: { src: string; alt: string; style
           fontFamily: "system-ui, sans-serif",
         }}
       >
-        <strong style={{ fontSize: "9pt" }}>Imagen no disponible</strong>
-        <span style={{ fontSize: "7.5pt" }}>Se eliminó el cómic de origen: {alt}</span>
+        <strong style={{ fontSize: "9pt" }}>Imatge no disponible</strong>
+        <span style={{ fontSize: "7.5pt" }}>S’ha eliminat el còmic d’origen: {alt}</span>
       </div>
     );
   }

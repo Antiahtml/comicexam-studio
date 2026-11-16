@@ -40,19 +40,19 @@ function IssueRow({ issue, onGo }: { issue: ReviewIssue; onGo: (i: ReviewIssue) 
     switch (issue.kind) {
       case "outsidePage":
       case "outsideMargins":
-        return { label: "Colocar dentro", run: () => st.fitInsideMargins(issue.elementId!) };
+        return { label: "Col·loca a dins", run: () => st.fitInsideMargins(issue.elementId!) };
       case "clipped":
         return {
-          label: "Agrandar la caja",
+          label: "Amplia la caixa",
           run: () => {
             const h = measureContentHeightMm(issue.elementId!);
             if (h) st.updateElement(issue.elementId!, { h });
           },
         };
       case "totalMismatch":
-        return { label: "Usar la suma", run: () => st.updateMeta({ totalScore: totalPoints(st.doc) }) };
+        return { label: "Utilitza la suma", run: () => st.updateMeta({ totalScore: totalPoints(st.doc) }) };
       case "emptyPage":
-        return { label: "Eliminar hoja", run: () => st.deletePage(st.doc.pages[issue.pageIndex!].id) };
+        return { label: "Elimina el full", run: () => st.deletePage(st.doc.pages[issue.pageIndex!].id) };
       default:
         return null;
     }
@@ -70,7 +70,7 @@ function IssueRow({ issue, onGo }: { issue: ReviewIssue; onGo: (i: ReviewIssue) 
         )}
         {(issue.elementId || issue.pageIndex !== undefined) && (
           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => onGo(issue)}>
-            Ver
+            Veure
           </Button>
         )}
       </span>
@@ -104,10 +104,10 @@ export function ExportPdfDialog({ open, onOpenChange }: { open: boolean; onOpenC
     setBusy(true);
     try {
       const { errors: missing } = await printProject(projectId, fileName.trim() || name);
-      if (missing > 0) toast.warning(`${missing} imagen(es) no están disponibles y saldrán como aviso.`);
+      if (missing > 0) toast.warning(`${missing} imatge(s) no estan disponibles i sortiran com a avís.`);
       onOpenChange(false);
     } catch (err) {
-      toast.error("No se ha podido preparar la impresión", { description: (err as Error).message });
+      toast.error("No s'ha pogut preparar la impressió", { description: (err as Error).message });
     } finally {
       setBusy(false);
     }
@@ -117,14 +117,14 @@ export function ExportPdfDialog({ open, onOpenChange }: { open: boolean; onOpenC
     <Dialog open={open} onOpenChange={(o) => !busy && onOpenChange(o)}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Exportar PDF</DialogTitle>
+          <DialogTitle>Exporta en PDF</DialogTitle>
           <DialogDescription>
-            A4 {doc.settings.orientation === "portrait" ? "vertical" : "horizontal"} · {doc.pages.length} hoja{doc.pages.length > 1 ? "s" : ""} · imágenes a resolución
-            original. Se abrirá la ventana de impresión: elige <strong>«Guardar como PDF»</strong> como destino (o tu impresora).
+            A4 {doc.settings.orientation === "portrait" ? "vertical" : "horitzontal"} · {doc.pages.length} full{doc.pages.length > 1 ? "s" : ""} · imatges a resolució
+            original. S’obrirà la finestra d’impressió: tria <strong>«Desa com a PDF»</strong> com a destinació (o la teva impressora).
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-1.5">
-          <Label htmlFor="pdf-name">Nombre del archivo</Label>
+          <Label htmlFor="pdf-name">Nom del fitxer</Label>
           <div className="flex items-center gap-2">
             <Input id="pdf-name" value={fileName} onChange={(e) => setFileName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && run()} data-testid="pdf-filename" />
             <span className="text-sm text-muted-foreground">.pdf</span>
@@ -132,17 +132,17 @@ export function ExportPdfDialog({ open, onOpenChange }: { open: boolean; onOpenC
         </div>
 
         <section className="space-y-2" data-testid="export-review">
-          <h3 className="text-sm font-semibold">Revisión antes de imprimir</h3>
+          <h3 className="text-sm font-semibold">Revisió abans d’imprimir</h3>
           {issues.length === 0 ? (
             <p className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-2.5 text-sm text-emerald-800">
-              <CircleCheck className="size-4" /> Todo listo: nada se sale de la hoja, no hay textos cortados y la puntuación cuadra.
+              <CircleCheck className="size-4" /> Tot a punt: res no surt del full, no hi ha textos tallats i la puntuació quadra.
             </p>
           ) : (
             <>
               <p className="text-xs text-muted-foreground">
                 {errors > 0
-                  ? `${errors} problema${errors > 1 ? "s" : ""} hará${errors > 1 ? "n" : ""} que falte contenido en el papel.`
-                  : "No falta contenido, pero conviene revisar estos avisos."}
+                  ? `${errors} problema${errors > 1 ? "es" : ""} farà${errors > 1 ? "n" : ""} que falti contingut al paper.`
+                  : "No falta contingut, però convé revisar aquests avisos."}
               </p>
               <ul className="thin-scroll max-h-64 space-y-1.5 overflow-y-auto pr-1">
                 {issues.map((i) => (
@@ -156,12 +156,12 @@ export function ExportPdfDialog({ open, onOpenChange }: { open: boolean; onOpenC
         <DialogFooter>
           <Button variant="outline" asChild>
             <Link href={`/vista-previa?id=${projectId}`}>
-              <Eye /> Vista previa
+              <Eye /> Vista prèvia
             </Link>
           </Button>
           <Button onClick={run} disabled={busy} variant={errors > 0 ? "outline" : "default"} data-testid="print-pdf">
             {busy ? <Loader2 className="animate-spin" /> : <Printer />}
-            {busy ? "Preparando…" : errors > 0 ? "Imprimir igualmente" : "Imprimir / Guardar PDF"}
+            {busy ? "Preparant…" : errors > 0 ? "Imprimeix igualment" : "Imprimeix / Desa en PDF"}
           </Button>
         </DialogFooter>
       </DialogContent>

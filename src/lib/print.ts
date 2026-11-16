@@ -21,7 +21,7 @@ export async function waitForPrintReady(frame: HTMLIFrameElement, timeoutMs = 90
   for (;;) {
     const w = frame.contentWindow as PrintWindow | null;
     if (w?.__PRINT_READY__) return { errors: w.__PRINT_ERRORS__ ?? 0 };
-    if (Date.now() - start > timeoutMs) throw new Error("La vista de impresión tarda demasiado en cargar. Inténtalo de nuevo.");
+    if (Date.now() - start > timeoutMs) throw new Error("La vista d'impressió triga massa a carregar. Torna-ho a provar.");
     await new Promise((r) => setTimeout(r, 120));
   }
 }
@@ -29,7 +29,7 @@ export async function waitForPrintReady(frame: HTMLIFrameElement, timeoutMs = 90
 /** Abre el diálogo de impresión de un iframe con la vista de impresión ya cargada. */
 export function printFrame(frame: HTMLIFrameElement, fileName: string): Promise<void> {
   const w = frame.contentWindow;
-  if (!w) return Promise.reject(new Error("No se ha podido preparar la impresión."));
+  if (!w) return Promise.reject(new Error("No s'ha pogut preparar la impressió."));
   // El nombre que propone «Guardar como PDF» sale del título del documento.
   const title = safeFileName(fileName.replace(/\.pdf$/i, ""));
   const previous = document.title;
@@ -62,7 +62,7 @@ export async function printProject(projectId: string, fileName: string): Promise
   try {
     await new Promise<void>((resolve, reject) => {
       frame.addEventListener("load", () => resolve(), { once: true });
-      frame.addEventListener("error", () => reject(new Error("No se ha podido cargar la vista de impresión.")), { once: true });
+      frame.addEventListener("error", () => reject(new Error("No s'ha pogut carregar la vista d'impressió.")), { once: true });
     });
     const res = await waitForPrintReady(frame);
     await printFrame(frame, fileName);

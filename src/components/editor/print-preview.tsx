@@ -22,10 +22,10 @@ export function PrintPreview({ projectId, name }: { projectId: string; name: str
     setBusy(true);
     try {
       const { errors } = await waitForPrintReady(frame.current);
-      if (errors > 0) toast.warning(`${errors} imagen(es) no están disponibles y saldrán como aviso.`);
+      if (errors > 0) toast.warning(`${errors} imatge(s) no estan disponibles i sortiran com a avís.`);
       await printFrame(frame.current, fileName.trim() || name);
     } catch (err) {
-      toast.error("No se ha podido imprimir", { description: (err as Error).message });
+      toast.error("No s'ha pogut imprimir", { description: (err as Error).message });
     } finally {
       setBusy(false);
     }
@@ -36,11 +36,11 @@ export function PrintPreview({ projectId, name }: { projectId: string; name: str
       <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-card px-3">
         <Button variant="ghost" size="sm" asChild>
           <Link href={`/editor?id=${projectId}`}>
-            <ArrowLeft /> Volver al editor
+            <ArrowLeft /> Torna a l’editor
           </Link>
         </Button>
         <LogoMark className="size-7" />
-        <h1 className="truncate text-sm font-semibold">Vista previa · {name}</h1>
+        <h1 className="truncate text-sm font-semibold">Vista prèvia · {name}</h1>
         <Button
           variant="ghost"
           size="iconSm"
@@ -48,32 +48,32 @@ export function PrintPreview({ projectId, name }: { projectId: string; name: str
             setNonce((n) => n + 1);
             setLoading(true);
           }}
-          aria-label="Actualizar"
+          aria-label="Actualitza"
         >
           <RefreshCw />
         </Button>
         <div className="ml-auto flex items-center gap-2">
-          <Input value={fileName} onChange={(e) => setFileName(e.target.value)} className="h-8 w-56" aria-label="Nombre del archivo" />
+          <Input value={fileName} onChange={(e) => setFileName(e.target.value)} className="h-8 w-56" aria-label="Nom del fitxer" />
           <span className="text-sm text-muted-foreground">.pdf</span>
           <Button size="sm" disabled={busy || loading} onClick={print} data-testid="preview-print">
-            {busy ? <Loader2 className="animate-spin" /> : <Printer />} Imprimir / Guardar PDF
+            {busy ? <Loader2 className="animate-spin" /> : <Printer />} Imprimeix / Desa en PDF
           </Button>
         </div>
       </header>
       <p className="flex items-center justify-center gap-2 border-b bg-secondary/60 px-3 py-1.5 text-xs text-secondary-foreground">
-        <Info className="size-3.5" /> Se abrirá la ventana de impresión: elige la impresora o, como destino, <strong>«Guardar como PDF»</strong>.
+        <Info className="size-3.5" /> S’obrirà la finestra d’impressió: tria la impressora o, com a destinació, <strong>«Desa com a PDF»</strong>.
       </p>
       <div className="relative min-h-0 flex-1">
         {loading && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-canvas text-sm text-muted-foreground">
-            <Loader2 className="size-6 animate-spin text-primary" /> Preparando la vista de impresión…
+            <Loader2 className="size-6 animate-spin text-primary" /> Preparant la vista d’impressió…
           </div>
         )}
         <iframe
           key={nonce}
           ref={frame}
           src={printViewUrl(projectId)}
-          title="Vista previa"
+          title="Vista prèvia"
           className="size-full border-0"
           onLoad={() => setLoading(false)}
           data-testid="preview-frame"

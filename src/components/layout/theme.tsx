@@ -9,7 +9,7 @@ export type ThemePreference = "light" | "dark" | "system";
 
 const KEY = "comicexam-theme";
 const ORDER: ThemePreference[] = ["system", "light", "dark"];
-const LABEL: Record<ThemePreference, string> = { system: "Tema: automático", light: "Tema: claro", dark: "Tema: oscuro" };
+const LABEL: Record<ThemePreference, string> = { system: "Tema: automàtic", light: "Tema: clar", dark: "Tema: fosc" };
 
 /**
  * Script que se ejecuta antes de pintar (evita el parpadeo claro→oscuro): aplica la clase `dark`
@@ -70,7 +70,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       <button
         type="button"
         onClick={next}
-        aria-label={`${LABEL[pref]}. Pulsa para cambiar`}
+        aria-label={`${LABEL[pref]}. Prem per canviar`}
         data-testid="theme-toggle"
         className={cn(
           "inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition-[color,background-color,scale] duration-200 hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 focus-visible:outline-none motion-safe:active:scale-90",

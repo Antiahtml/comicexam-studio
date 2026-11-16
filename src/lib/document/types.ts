@@ -146,11 +146,16 @@ export interface QuestionElement extends BaseElement {
   lineStyle: "solid" | "dotted" | "dashed";
   /** Opciones (opción múltiple). */
   options: string[];
+  /** Columnes de les opcions. 0 = automàtic: totes en una fila i, si no hi caben, en més files. */
   optionColumns: number;
   /** Afirmaciones (verdadero/falso). */
   statements: string[];
-  /** Parejas (relacionar conceptos). */
+  /** Parejas correctas (relacionar conceptos): columna A ↔ columna B. */
   pairs: { left: string; right: string }[];
+  /** Llavor per barrejar la columna B en imprimir. 0 o absent = sense barrejar. */
+  shuffleSeed?: number;
+  /** Respuesta larga e imagen: las líneas se ajustan solas a la altura de la caja. */
+  autoLines?: boolean;
   /** Imagen asociada (pregunta basada en imagen). */
   image: ImageSource | null;
   /** mm */

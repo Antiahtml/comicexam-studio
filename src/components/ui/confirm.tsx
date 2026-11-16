@@ -52,7 +52,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => close(null)}>
-              {state?.cancelLabel ?? "Cancelar"}
+              {state?.cancelLabel ?? "Cancel·la"}
             </Button>
             {[...(state?.options ?? [])].reverse().map((o, i, arr) => (
               <Button key={o.value} variant={o.variant ?? "default"} onClick={() => close(o.value)} autoFocus={i === arr.length - 1}>
@@ -77,7 +77,7 @@ export function useConfirm() {
       (await choose({
         title: o.title,
         description: o.description,
-        options: [{ value: "ok", label: o.confirmLabel ?? "Aceptar", variant: o.destructive ? "destructive" : "default" }],
+        options: [{ value: "ok", label: o.confirmLabel ?? "Accepta", variant: o.destructive ? "destructive" : "default" }],
       })) === "ok",
     [choose],
   );

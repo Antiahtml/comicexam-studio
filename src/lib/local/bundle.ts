@@ -35,7 +35,7 @@ export type BundleManifest = z.infer<typeof manifestSchema>;
 
 export async function exportProjectBundle(projectId: string): Promise<{ name: string; data: Uint8Array }> {
   const project = await getProject(projectId);
-  if (!project) throw new Error("Examen no encontrado");
+  if (!project) throw new Error("Examen no trobat");
   const db = await getDB();
   const files: Record<string, Uint8Array | [Uint8Array, { level: 0 }]> = {};
   const pages: BundleManifest["pages"] = [];
@@ -47,7 +47,7 @@ export async function exportProjectBundle(projectId: string): Promise<{ name: st
     const ext = page.mime === "image/png" ? "png" : page.mime === "image/webp" ? "webp" : "jpg";
     const file = `pages/${n++}.${ext}`;
     files[file] = [new Uint8Array(await blob.arrayBuffer()), { level: 0 }];
-    pages.push({ id: page.id, comicId: page.comicId, comicTitle: comic?.title ?? "Cómic", index: page.index, file });
+    pages.push({ id: page.id, comicId: page.comicId, comicTitle: comic?.title ?? "Còmic", index: page.index, file });
   }
   const manifest: BundleManifest = { format: "comicexam", version: 1, name: project.name, document: project.document, pages };
   files["comicexam.json"] = strToU8(JSON.stringify(manifest, null, 2));
@@ -56,36 +56,36 @@ export async function exportProjectBundle(projectId: string): Promise<{ name: st
 
 /** Lee y valida un .comicexam (sin escribir nada todavía). */
 export function readBundle(bytes: Uint8Array): { manifest: BundleManifest; document: ExamDocument; files: Map<string, Uint8Array> } {
-  if (bytes.byteLength > LIMITS.maxUploadBytes) throw new Error("El proyecto es demasiado grande.");
+  if (bytes.byteLength > LIMITS.maxUploadBytes) throw new Error("El projecte és massa gran.");
   let total = 0;
   let entries: Record<string, Uint8Array>;
   try {
     entries = unzipSync(bytes, {
       filter: (f) => {
-        if (f.originalSize > LIMITS.maxEntryBytes) throw new Error("Un recurso del proyecto es demasiado grande.");
+        if (f.originalSize > LIMITS.maxEntryBytes) throw new Error("Un recurs del projecte és massa gran.");
         total += f.originalSize;
-        if (total > LIMITS.maxTotalBytes) throw new Error("El proyecto es demasiado grande.");
+        if (total > LIMITS.maxTotalBytes) throw new Error("El projecte és massa gran.");
         return f.name === "comicexam.json" || /^pages\/\d{1,5}\.(jpg|png|webp)$/.test(f.name);
       },
     });
   } catch (err) {
-    throw new Error(err instanceof Error && /demasiado grande/.test(err.message) ? err.message : "El archivo no es un proyecto .comicexam válido.");
+    throw new Error(err instanceof Error && /massa gran/.test(err.message) ? err.message : "El fitxer no és un projecte .comicexam vàlid.");
   }
   const raw = entries["comicexam.json"];
-  if (!raw) throw new Error("Falta el archivo comicexam.json en el proyecto.");
+  if (!raw) throw new Error("Falta el fitxer comicexam.json al projecte.");
   let manifest: BundleManifest;
   try {
     manifest = manifestSchema.parse(JSON.parse(new TextDecoder().decode(raw)));
   } catch {
-    throw new Error("El manifiesto del proyecto no es válido.");
+    throw new Error("El manifest del projecte no és vàlid.");
   }
   let document: ExamDocument;
   try {
     document = parseDocument(manifest.document);
   } catch {
-    throw new Error("El examen incluido en el proyecto no es válido.");
+    throw new Error("L'examen inclòs al projecte no és vàlid.");
   }
-  for (const p of manifest.pages) if (!entries[p.file]) throw new Error(`Falta la imagen ${p.file} en el proyecto.`);
+  for (const p of manifest.pages) if (!entries[p.file]) throw new Error(`Falta la imatge ${p.file} al projecte.`);
   return { manifest, document, files: new Map(Object.entries(entries)) };
 }
 
@@ -118,7 +118,7 @@ export async function importProjectBundle(
     const mime = (f: string) => (f.endsWith(".png") ? "image/png" : f.endsWith(".webp") ? "image/webp" : "image/jpeg");
     const res = await importImages(
       `Recursos de «${manifest.name}»`,
-      manifest.pages.map((p) => ({ name: `${p.comicTitle} · pág. ${p.index + 1}`, data: new Blob([files.get(p.file)! as BlobPart], { type: mime(p.file) }) })),
+      manifest.pages.map((p) => ({ name: `${p.comicTitle} · pàg. ${p.index + 1}`, data: new Blob([files.get(p.file)! as BlobPart], { type: mime(p.file) }) })),
     );
     const db = await getDB();
     for (let i = 0; i < manifest.pages.length; i++) {
