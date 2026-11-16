@@ -20,7 +20,7 @@ async function drawRegion(page: Page, layer: Locator, from: [number, number], to
 }
 
 async function closeViewer(page: Page) {
-  await page.getByRole("dialog").getByRole("button", { name: "Cerrar", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Tanca", exact: true }).click();
 }
 
 async function openViewerAt(page: Page, pageNumber: number) {
@@ -29,7 +29,7 @@ async function openViewerAt(page: Page, pageNumber: number) {
   await page.getByTestId("comic-page-thumb").nth(pageNumber - 1).click();
   const viewer = page.getByTestId("comic-viewer");
   await expect(viewer).toBeVisible();
-  await expect(viewer.getByLabel("Número de página")).toHaveValue(String(pageNumber));
+  await expect(viewer.getByLabel("Número de pàgina")).toHaveValue(String(pageNumber));
   return viewer;
 }
 
@@ -46,7 +46,7 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   // 1. Importar el CBR (RAR5) desde la biblioteca: se procesa en el navegador
   await page.goto("biblioteca/");
   await page.getByTestId("comic-file-input").setInputFiles(FIXTURE);
-  const card = page.getByTestId("comic-card").filter({ hasText: "48 págs." });
+  const card = page.getByTestId("comic-card").filter({ hasText: "48 pàg." });
   await expect(card).toBeVisible({ timeout: 90_000 });
 
   // 2. Crear el examen
@@ -63,31 +63,42 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   await drawRegion(page, viewer.getByTestId("region-layer"), [0.05, 0.33], [0.47, 0.66]);
   await expect(viewer.getByTestId("region-card")).toHaveCount(1);
   await viewer.getByTestId("insert-region").click();
-  await expect(viewer.getByText("Guardada")).toBeVisible();
+  await expect(viewer.getByText("Desada")).toBeVisible();
 
   // Una segunda selección sin guardar no se pierde al cerrar: el visor pregunta qué hacer.
   await drawRegion(page, viewer.getByTestId("region-layer"), [0.55, 0.05], [0.9, 0.3]);
-  await expect(viewer.getByText("Borrador", { exact: true })).toBeVisible();
+  await expect(viewer.getByText("Esborrany", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape"); // primero solo deselecciona
   await expect(viewer).toBeVisible();
   await page.keyboard.press("Escape"); // después intenta cerrar
   const choice = page.getByTestId("choice-dialog");
-  await expect(choice).toContainText("Tienes 1 viñeta sin guardar");
-  await choice.getByRole("button", { name: "Seguir seleccionando" }).click();
+  await expect(choice).toContainText("Tens 1 vinyeta sense desar");
+  await choice.getByRole("button", { name: "Continua seleccionant" }).click();
   await expect(viewer).toBeVisible();
   await closeViewer(page);
-  await choice.getByRole("button", { name: "Guardar y salir" }).click();
+  await choice.getByRole("button", { name: "Desa i surt" }).click();
   await expect(viewer).toBeHidden();
   const page1 = page.getByTestId("exam-page-1");
   await expect(page1.locator("[data-el-type=image]")).toHaveCount(1);
 
   // 6-7. Pregunta sobre la viñeta con cuatro líneas de respuesta
   await page.getByTestId("left-tab-questions").click();
-  await page.getByTestId("tpl-Respuesta larga").click();
+  await page.getByTestId("tpl-Resposta llarga").click();
   await page.getByTestId("prop-prompt").fill("¿Qué está ocurriendo en esta escena?");
-  await page.getByTestId("prop-lines").fill("4");
-  await page.getByTestId("prop-lines").blur();
   await expect(page1.locator("[data-el-type=question]")).toContainText("¿Qué está ocurriendo en esta escena?");
+  // Las líneas de respuesta se ajustan solas a la altura de la caja: más alta → más líneas
+  const longQ = page1.locator("[data-el-type=question]");
+  await expect(longQ.locator("[data-fill-lines]")).toHaveCount(1);
+  await expect(page.getByTestId("prop-lines")).toHaveCount(0);
+  const visibleLines = () =>
+    longQ.locator("[data-fill-lines]").evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return [...el.children].filter((k) => k.getBoundingClientRect().bottom <= r.bottom + 1).length;
+    });
+  const linesBefore = await visibleLines();
+  await page.getByTestId("prop-h").fill("90");
+  await page.getByTestId("prop-h").blur();
+  await expect.poll(visibleLines).toBeGreaterThan(linesBefore);
 
   // Cambiar tamaño de la viñeta desde Propiedades (mm, independiente del zoom)
   await page1.locator("[data-el-type=image]").click();
@@ -101,8 +112,8 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   await drawRegion(page, layer, [0.04, 0.03], [0.48, 0.31]);
   await drawRegion(page, layer, [0.52, 0.03], [0.96, 0.31]);
   await expect(viewer.getByTestId("region-card")).toHaveCount(2);
-  await viewer.getByLabel("Marcar viñeta 1").check();
-  await viewer.getByLabel("Marcar viñeta 2").check();
+  await viewer.getByLabel("Marca la vinyeta 1").check();
+  await viewer.getByLabel("Marca la vinyeta 2").check();
   await viewer.getByTestId("insert-row").click();
   await closeViewer(page);
   await expect(viewer).toBeHidden();
@@ -116,16 +127,16 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
 
   // 11. Pregunta de comparación
   await page.getByTestId("left-tab-questions").click();
-  await page.getByTestId("tpl-Respuesta corta").click();
+  await page.getByTestId("tpl-Resposta curta").click();
   await page.getByTestId("prop-prompt").fill("Compara las dos escenas: ¿qué ha cambiado?");
 
   // 12-13. Segunda hoja con más preguntas
   await page.getByTestId("add-page").click();
   const lastPage = page.locator("[data-page-surface]").last();
-  await page.getByTestId("tpl-Verdadero o falso").click();
+  await page.getByTestId("tpl-Vertader o fals").click();
   await expect(lastPage.locator("[data-el-type=question]")).toHaveCount(1);
   await page.getByTestId("left-tab-answers").click();
-  await page.getByTestId("tpl-4 líneas").click();
+  await page.getByTestId("tpl-4 línies").click();
   const pageCount = await page.locator("[data-page-surface]").count();
   expect(pageCount).toBeGreaterThanOrEqual(2);
 
@@ -149,7 +160,7 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   await expect(frame.locator("body[data-print-ready=true]")).toBeAttached({ timeout: 30_000 });
   // La vista de impresión no contiene controles del editor
   await expect(frame.locator("[data-handle], button")).toHaveCount(0);
-  await page.getByRole("link", { name: "Volver al editor" }).click();
+  await page.getByRole("link", { name: "Torna a l’editor" }).click();
   await page.waitForURL(/\/editor\/\?id=/);
 
   // 16. Exportar PDF: primero la revisión avisa de que la nota total (10) no coincide con la suma
@@ -157,7 +168,7 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   const review = page.getByTestId("export-review");
   const totalIssue = review.locator("[data-kind=totalMismatch]");
   await expect(totalIssue).toBeVisible();
-  await totalIssue.getByRole("button", { name: "Usar la suma" }).click();
+  await totalIssue.getByRole("button", { name: "Utilitza la suma" }).click();
   await expect(totalIssue).toHaveCount(0);
   await page.getByTestId("pdf-filename").fill("Examen comprensión 2.º ESO");
   await page.getByTestId("print-pdf").click();
@@ -202,9 +213,9 @@ test("importar cómic → seleccionar viñeta → insertar → pregunta → guar
   await page.goto("biblioteca/");
   const comicCard = page.getByTestId("comic-card").first();
   await comicCard.hover();
-  await comicCard.getByRole("button", { name: "Acciones" }).click();
-  await page.getByRole("menuitem", { name: "Eliminar" }).click();
+  await comicCard.getByRole("button", { name: "Accions" }).click();
+  await page.getByRole("menuitem", { name: "Elimina" }).click();
   await expect(page.getByTestId("comic-usage-warning")).toContainText("Comprensión lectora — Cómic");
-  await page.getByTestId("choice-dialog").getByRole("button", { name: "Cancelar" }).click();
+  await page.getByTestId("choice-dialog").getByRole("button", { name: "Cancel·la" }).click();
   await expect(comicCard).toBeVisible();
 });

@@ -49,28 +49,28 @@ interface RawEntry {
 /** Selecciona, valida y ordena las entradas de imagen. Lanza ArchiveError si se superan límites. */
 export function planEntries(raw: RawEntry[], archiveBytes: number, limits: ExtractLimits): PlannedEntry[] {
   if (raw.length > limits.maxEntries) {
-    throw new ArchiveError(`El archivo contiene demasiadas entradas (${raw.length}). Máximo permitido: ${limits.maxEntries}.`);
+    throw new ArchiveError(`El fitxer conté massa entrades (${raw.length}). Màxim permès: ${limits.maxEntries}.`);
   }
   const candidates = raw.filter((e) => !e.directory && !isIgnorableEntry(e.name) && hasImageExtension(e.name));
   for (const e of candidates) {
     if (!isSafeEntryName(e.name)) {
-      throw new ArchiveError(`El archivo contiene una ruta no válida o peligrosa: "${e.name.slice(0, 120)}".`);
+      throw new ArchiveError(`El fitxer conté una ruta no vàlida o perillosa: "${e.name.slice(0, 120)}".`);
     }
     if (e.encrypted) {
-      throw new ArchiveError("El archivo está protegido con contraseña. Descomprímelo y vuelve a comprimirlo sin contraseña.");
+      throw new ArchiveError("El fitxer està protegit amb contrasenya. Descomprimeix-lo i torna'l a comprimir sense contrasenya.");
     }
     if (e.size > limits.maxEntryBytes) {
       throw new ArchiveError(
-        `La imagen "${e.name}" ocupa ${(e.size / 1048576).toFixed(0)} MB descomprimida, más del máximo permitido (${(limits.maxEntryBytes / 1048576).toFixed(0)} MB).`,
+        `La imatge "${e.name}" ocupa ${(e.size / 1048576).toFixed(0)} MB descomprimida, més del màxim permès (${(limits.maxEntryBytes / 1048576).toFixed(0)} MB).`,
       );
     }
   }
   const total = candidates.reduce((s, e) => s + e.size, 0);
-  if (total > limits.maxTotalBytes) throw new ArchiveError("El contenido descomprimido supera el tamaño máximo permitido.");
+  if (total > limits.maxTotalBytes) throw new ArchiveError("El contingut descomprimit supera la mida màxima permesa.");
   if (archiveBytes > 0 && total / archiveBytes > limits.maxCompressionRatio) {
-    throw new ArchiveError("El archivo tiene una tasa de compresión anómala (posible bomba de descompresión) y se ha rechazado.");
+    throw new ArchiveError("El fitxer té una taxa de compressió anòmala (possible bomba de descompressió) i s'ha rebutjat.");
   }
-  if (candidates.length === 0) throw new ArchiveError("No se han encontrado imágenes (JPG, PNG, WebP…) dentro del archivo.");
+  if (candidates.length === 0) throw new ArchiveError("No s'han trobat imatges (JPG, PNG, WebP…) dins del fitxer.");
   const seen = new Set<string>();
   const unique = candidates.filter((e) => !seen.has(e.name) && seen.add(e.name));
   return [...unique].sort((a, b) => naturalCompare(a.name, b.name)).map((e, index) => ({ name: e.name, size: e.size, index }));
@@ -81,18 +81,18 @@ function unrarMessage(err: unknown): string {
   switch (reason) {
     case "ERAR_MISSING_PASSWORD":
     case "ERAR_BAD_PASSWORD":
-      return "El archivo RAR está protegido con contraseña.";
+      return "El fitxer RAR està protegit amb contrasenya.";
     case "ERAR_BAD_ARCHIVE":
     case "ERAR_UNKNOWN_FORMAT":
-      return "El archivo RAR está dañado o no tiene un formato válido.";
+      return "El fitxer RAR està malmès o no té un format vàlid.";
     case "ERAR_BAD_DATA":
-      return "El archivo RAR contiene datos corruptos (error de comprobación).";
+      return "El fitxer RAR conté dades corruptes (error de comprovació).";
     case "ERAR_EREFERENCE":
-      return "El archivo RAR depende de otro volumen que no está disponible.";
+      return "El fitxer RAR depèn d'un altre volum que no està disponible.";
     case "ERAR_NO_MEMORY":
-      return "No hay memoria suficiente para descomprimir el archivo. Prueba a cerrar otras pestañas.";
+      return "No hi ha prou memòria per descomprimir el fitxer. Prova de tancar altres pestanyes.";
     default:
-      return "No se ha podido leer el archivo RAR. Puede que esté dañado.";
+      return "No s'ha pogut llegir el fitxer RAR. Pot ser que estigui malmès.";
   }
 }
 
@@ -101,7 +101,7 @@ async function extractRar(data: ArrayBuffer, wasmBinary: ArrayBuffer | undefined
   try {
     const list = (await createExtractorFromData({ data, wasmBinary })).getFileList();
     if (list.arcHeader.flags.volume) {
-      throw new ArchiveError("Los archivos RAR divididos en varios volúmenes no están soportados. Únelos en un solo archivo.");
+      throw new ArchiveError("Els fitxers RAR dividits en diversos volums no estan suportats. Uneix-los en un sol fitxer.");
     }
     const raw: RawEntry[] = [...list.fileHeaders].map((h) => ({
       name: h.name,
@@ -125,7 +125,7 @@ async function extractRar(data: ArrayBuffer, wasmBinary: ArrayBuffer | undefined
       if (!entry || !file.extraction) continue;
       byName.delete(file.fileHeader.name);
       if (file.extraction.byteLength !== entry.size || file.extraction.byteLength > limits.maxEntryBytes) {
-        throw new ArchiveError(`Tamaño inesperado al extraer "${entry.name}". El archivo podría estar manipulado.`);
+        throw new ArchiveError(`Mida inesperada en extreure "${entry.name}". El fitxer podria estar manipulat.`);
       }
       await cb.onEntry(entry, file.extraction);
       count++;
@@ -149,7 +149,7 @@ async function extractZip(data: ArrayBuffer, limits: ExtractLimits, cb: ExtractC
       },
     });
   } catch {
-    throw new ArchiveError("El archivo ZIP/CBZ está dañado o no tiene un formato válido.");
+    throw new ArchiveError("El fitxer ZIP/CBZ està malmès o no té un format vàlid.");
   }
   const plan = planEntries(raw, bytes.byteLength, limits);
   await cb.onPlan?.(plan);
@@ -169,12 +169,12 @@ async function extractZip(data: ArrayBuffer, limits: ExtractLimits, cb: ExtractC
     file.ondata = (err, chunk, final) => {
       if (failure) return;
       if (err) {
-        failure = new ArchiveError(`No se ha podido descomprimir "${entry.name}": el archivo podría estar dañado o protegido con contraseña.`);
+        failure = new ArchiveError(`No s'ha pogut descomprimir "${entry.name}": el fitxer podria estar malmès o protegit amb contrasenya.`);
         return;
       }
       total += chunk.length;
       if (total > Math.min(limits.maxEntryBytes, entry.size)) {
-        failure = new ArchiveError(`Tamaño inesperado al extraer "${entry.name}". El archivo podría estar manipulado.`);
+        failure = new ArchiveError(`Mida inesperada en extreure "${entry.name}". El fitxer podria estar manipulat.`);
         file.terminate();
         return;
       }
@@ -197,7 +197,7 @@ async function extractZip(data: ArrayBuffer, limits: ExtractLimits, cb: ExtractC
     try {
       unzip.push(bytes.subarray(off, off + CHUNK), off + CHUNK >= bytes.length);
     } catch {
-      failure ??= new ArchiveError("El archivo ZIP/CBZ está dañado.");
+      failure ??= new ArchiveError("El fitxer ZIP/CBZ està malmès.");
     }
     if (failure) throw failure;
     while (ready.length) {

@@ -32,6 +32,7 @@ import { LeftPanel } from "./left-panel";
 import { EditorCanvas } from "./editor-canvas";
 import { PropertiesPanel } from "./properties-panel";
 import { PageStrip } from "./page-strip";
+import { animateZoomTo, zoomBy } from "./zoom-motion";
 import { ExportPdfDialog } from "./export-dialog";
 import { PX_PER_MM, pageSize } from "@/lib/document/units";
 import { cn, downloadBlob, safeFileName } from "@/lib/utils";
@@ -88,13 +89,13 @@ function SaveIndicator() {
   const saveState = useEditor((s) => s.saveState);
   const saveError = useEditor((s) => s.saveError);
   const map = {
-    saved: { icon: <Check className="size-3.5" />, text: "Guardado", cls: "text-emerald-700" },
-    dirty: { icon: <span className="size-2 rounded-full bg-amber-500" />, text: "Cambios sin guardar", cls: "text-muted-foreground" },
-    saving: { icon: <Loader2 className="size-3.5 animate-spin" />, text: "Guardando…", cls: "text-muted-foreground" },
-    error: { icon: <CloudOff className="size-3.5" />, text: "Error al guardar", cls: "text-destructive" },
+    saved: { icon: <Check className="size-3.5" />, text: "Desat", cls: "text-emerald-700 dark:text-emerald-400" },
+    dirty: { icon: <span className="size-2 rounded-full bg-amber-500" />, text: "Canvis sense desar", cls: "text-muted-foreground" },
+    saving: { icon: <Loader2 className="size-3.5 animate-spin" />, text: "Desant…", cls: "text-muted-foreground" },
+    error: { icon: <CloudOff className="size-3.5" />, text: "Error en desar", cls: "text-destructive" },
   }[saveState];
   return (
-    <Tip label={saveState === "error" ? `${saveError ?? ""} · Pulsa para reintentar` : "Los cambios se guardan automáticamente"}>
+    <Tip label={saveState === "error" ? `${saveError ?? ""} · Prem per tornar-ho a provar` : "Els canvis es desen automàticament"}>
       <button className={cn("flex items-center gap-1.5 rounded px-1.5 py-1 text-xs", map.cls)} onClick={() => void saveNow()} data-testid="save-indicator" data-state={saveState}>
         {map.icon}
         <span className="hidden md:inline">{map.text}</span>
@@ -114,7 +115,7 @@ function useShortcuts() {
       const st = useEditor.getState();
       if (mod && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        void saveNow().then((ok) => ok && toast.success("Proyecto guardado"));
+        void saveNow().then((ok) => ok && toast.success("Projecte desat"));
         return;
       }
       if (typing || document.querySelector("[role=dialog]")) return;
@@ -154,10 +155,10 @@ function useShortcuts() {
         st.nudge(dx, dy);
       } else if (mod && (e.key === "+" || e.key === "=")) {
         e.preventDefault();
-        st.setZoom(st.zoom * 1.15);
+        zoomBy(1.15);
       } else if (mod && e.key === "-") {
         e.preventDefault();
-        st.setZoom(st.zoom / 1.15);
+        zoomBy(1 / 1.15);
       } else if (e.key === "Enter" && st.selectedIds.length === 1) {
         st.setEditing(st.selectedIds[0]);
       }
@@ -179,7 +180,7 @@ function ProjectName() {
         if (e.key === "Enter") (e.target as HTMLInputElement).blur();
         e.stopPropagation();
       }}
-      aria-label="Nombre del proyecto"
+      aria-label="Nom del projecte"
       data-testid="project-name"
       className="h-8 w-full max-w-[22rem] min-w-0 truncate rounded-md border border-transparent bg-transparent px-2 text-sm font-semibold outline-none hover:border-input focus:border-ring focus:bg-card"
     />
@@ -189,17 +190,16 @@ function ProjectName() {
 function ZoomControls() {
   const zoom = useEditor((s) => s.zoom);
   const orientation = useEditor((s) => s.doc.settings.orientation);
-  const st = useEditor.getState();
   const fitWidth = () => {
     const canvas = document.querySelector<HTMLElement>("[data-testid=editor-canvas]");
     if (!canvas) return;
     const { width } = pageSize(orientation);
-    st.setZoom((canvas.clientWidth - 100) / (width * PX_PER_MM));
+    animateZoomTo((canvas.clientWidth - 100) / (width * PX_PER_MM));
   };
   return (
     <div className="flex items-center gap-0.5">
-      <Tip label="Alejar (⌘/Ctrl −)">
-        <Button variant="ghost" size="iconSm" onClick={() => st.setZoom(zoom / 1.15)} aria-label="Alejar">
+      <Tip label="Allunya (⌘/Ctrl −)">
+        <Button variant="ghost" size="iconSm" onClick={() => zoomBy(1 / 1.15)} aria-label="Allunya">
           <ZoomOut />
         </Button>
       </Tip>
@@ -211,16 +211,16 @@ function ZoomControls() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="min-w-32">
           {[0.5, 0.75, 1, 1.25, 1.5, 2].map((z) => (
-            <DropdownMenuItem key={z} onSelect={() => st.setZoom(z)}>
+            <DropdownMenuItem key={z} onSelect={() => animateZoomTo(z)}>
               {z * 100} %
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={fitWidth}>Ajustar al ancho</DropdownMenuItem>
+          <DropdownMenuItem onSelect={fitWidth}>Ajusta a l’amplada</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Tip label="Acercar (⌘/Ctrl +)">
-        <Button variant="ghost" size="iconSm" onClick={() => st.setZoom(zoom * 1.15)} aria-label="Acercar">
+      <Tip label="Apropa (⌘/Ctrl +)">
+        <Button variant="ghost" size="iconSm" onClick={() => zoomBy(1.15)} aria-label="Apropa">
           <ZoomIn />
         </Button>
       </Tip>
@@ -241,7 +241,7 @@ function TopBar({ onExport }: { onExport: () => void }) {
     await saveNow();
     try {
       const copy = await duplicateProject(projectId);
-      toast.success("Proyecto duplicado");
+      toast.success("Projecte duplicat");
       router.push(`/editor?id=${copy.id}`);
     } catch (err) {
       toast.error((err as Error).message);
@@ -249,13 +249,13 @@ function TopBar({ onExport }: { onExport: () => void }) {
   };
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-card px-3">
-      <Tip label="Volver a mis exámenes">
+    <header className="material absolute inset-x-0 top-0 z-30 flex h-14 items-center gap-2 px-3 shadow-[0_1px_0_var(--material-edge)]">
+      <Tip label="Torna als meus exàmens">
         <Link
           href="/"
           onClick={() => void saveNow()}
           className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-          aria-label="Volver"
+          aria-label="Torna"
         >
           <ArrowLeft className="size-4" />
           <LogoMark className="size-7" />
@@ -266,26 +266,26 @@ function TopBar({ onExport }: { onExport: () => void }) {
         <SaveIndicator />
       </div>
       <div className="flex items-center gap-0.5">
-        <Tip label="Deshacer (⌘/Ctrl Z)">
-          <Button variant="ghost" size="iconSm" disabled={!canUndo} onClick={() => st.undo()} aria-label="Deshacer" data-testid="undo">
+        <Tip label="Desfés (⌘/Ctrl Z)">
+          <Button variant="ghost" size="iconSm" disabled={!canUndo} onClick={() => st.undo()} aria-label="Desfés" data-testid="undo">
             <Undo2 />
           </Button>
         </Tip>
-        <Tip label="Rehacer (⌘/Ctrl ⇧ Z)">
-          <Button variant="ghost" size="iconSm" disabled={!canRedo} onClick={() => st.redo()} aria-label="Rehacer">
+        <Tip label="Refés (⌘/Ctrl ⇧ Z)">
+          <Button variant="ghost" size="iconSm" disabled={!canRedo} onClick={() => st.redo()} aria-label="Refés">
             <Redo2 />
           </Button>
         </Tip>
         <Separator vertical />
         <ZoomControls />
         <Separator vertical />
-        <Tip label={showGuides ? "Ocultar márgenes y guías" : "Mostrar márgenes y guías"}>
-          <Button variant={showGuides ? "secondary" : "ghost"} size="iconSm" onClick={() => st.toggleGuides()} aria-label="Guías">
+        <Tip label={showGuides ? "Amaga els marges i les guies" : "Mostra els marges i les guies"}>
+          <Button variant={showGuides ? "secondary" : "ghost"} size="iconSm" onClick={() => st.toggleGuides()} aria-label="Guies">
             <Grid2x2Check />
           </Button>
         </Tip>
-        <Tip label={snap ? "Ajuste magnético activado" : "Ajuste magnético desactivado"}>
-          <Button variant={snap ? "secondary" : "ghost"} size="iconSm" onClick={() => st.toggleSnap()} aria-label="Ajuste magnético">
+        <Tip label={snap ? "Ajust magnètic activat" : "Ajust magnètic desactivat"}>
+          <Button variant={snap ? "secondary" : "ghost"} size="iconSm" onClick={() => st.toggleSnap()} aria-label="Ajust magnètic">
             <Magnet />
           </Button>
         </Tip>
@@ -293,15 +293,15 @@ function TopBar({ onExport }: { onExport: () => void }) {
       <Separator vertical />
       <Button variant="outline" size="sm" asChild>
         <Link href={`/vista-previa?id=${projectId}`} onClick={() => void saveNow()} data-testid="preview-link">
-          <Eye /> Vista previa
+          <Eye /> Vista prèvia
         </Link>
       </Button>
       <Button size="sm" onClick={onExport} data-testid="export-pdf">
-        <FileDown /> Exportar PDF
+        <FileDown /> Exporta en PDF
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="iconSm" aria-label="Más opciones">
+          <Button variant="ghost" size="iconSm" aria-label="Més opcions">
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
@@ -313,14 +313,14 @@ function TopBar({ onExport }: { onExport: () => void }) {
                 const bundle = await exportProjectBundle(projectId);
                 downloadBlob(bundle.data, `${safeFileName(bundle.name)}.comicexam`, "application/zip");
               } catch (err) {
-                toast.error("No se ha podido exportar", { description: (err as Error).message });
+                toast.error("No s'ha pogut exportar", { description: (err as Error).message });
               }
             }}
           >
-            <Download /> Exportar examen (.comicexam)
+            <Download /> Exporta l’examen (.comicexam)
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={duplicate}>
-            <Copy /> Duplicar examen
+            <Copy /> Duplica l’examen
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -349,10 +349,13 @@ export function EditorShell({ project }: { project: { id: string; name: string; 
   }, []);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background" data-testid="editor">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-background" data-testid="editor">
+      {/* La barra superior flota sobre el lienzo, que se desplaza por debajo; los paneles laterales empiezan bajo ella. */}
       <TopBar onExport={openExport} />
       <div className="flex min-h-0 flex-1">
-        <LeftPanel />
+        <div className="flex min-h-0 bg-card pt-14">
+          <LeftPanel />
+        </div>
         <main className="flex min-w-0 flex-1 flex-col">
           {ready ? (
             <>
@@ -360,12 +363,16 @@ export function EditorShell({ project }: { project: { id: string; name: string; 
               <PageStrip />
             </>
           ) : (
-            <div className="flex flex-1 items-center justify-center text-muted-foreground">
-              <Loader2 className="mr-2 size-5 animate-spin" /> Abriendo examen…
+            <div className="flex flex-1 items-center justify-center pt-14 text-muted-foreground">
+              <Loader2 className="mr-2 size-5 animate-spin" /> Obrint l’examen…
             </div>
           )}
         </main>
-        {ready && <PropertiesPanel />}
+        {ready && (
+          <div className="flex min-h-0 bg-card pt-14">
+            <PropertiesPanel />
+          </div>
+        )}
       </div>
       <ExportPdfDialog key={exportOpen ? "open" : "closed"} open={exportOpen} onOpenChange={setExportOpen} />
     </div>

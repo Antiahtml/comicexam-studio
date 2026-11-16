@@ -4,13 +4,13 @@ import { pageSize } from "@/lib/document/units";
 import { fontCss } from "@/lib/document/fonts";
 import { ElementContent, elementBoxStyle, type RenderContext } from "./element-content";
 
-/** Sustituye las variables de cabecera/pie: {titulo}, {asignatura}, {curso}, {fecha}, {pagina}, {total}. */
+/** Substitueix les variables de capçalera/peu: {titol}, {assignatura}, {curs}, {data}, {pagina}, {total} (també s'accepten les antigues en castellà). */
 export function fillTokens(text: string, doc: ExamDocument, page: number, total: number): string {
   return text
-    .replace(/\{titulo\}/gi, doc.meta.title)
-    .replace(/\{asignatura\}/gi, doc.meta.subject)
-    .replace(/\{curso\}/gi, doc.meta.course)
-    .replace(/\{fecha\}/gi, doc.meta.date)
+    .replace(/\{(?:titol|titulo)\}/gi, doc.meta.title)
+    .replace(/\{(?:assignatura|asignatura)\}/gi, doc.meta.subject)
+    .replace(/\{(?:curs|curso)\}/gi, doc.meta.course)
+    .replace(/\{(?:data|fecha)\}/gi, doc.meta.date)
     .replace(/\{pagina\}/gi, String(page))
     .replace(/\{total\}/gi, String(total));
 }
@@ -22,7 +22,7 @@ export function pageNumberText(doc: ExamDocument, page: number, total: number): 
     case "n-total":
       return `${page} / ${total}`;
     default:
-      return `Página ${page} de ${total}`;
+      return `Pàgina ${page} de ${total}`;
   }
 }
 

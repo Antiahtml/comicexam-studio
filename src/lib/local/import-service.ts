@@ -70,8 +70,8 @@ export async function importImageFiles(files: File[], title?: string): Promise<{
   void requestPersistentStorage();
   const sorted = [...files].sort((a, b) => naturalCompare(a.name, b.name));
   const comic = await createComicRecord({
-    title: title || (sorted.length === 1 ? titleFromFileName(sorted[0].name) : `Imágenes (${sorted.length})`),
-    originalName: sorted.length === 1 ? sorted[0].name : `${sorted.length} imágenes`,
+    title: title || (sorted.length === 1 ? titleFromFileName(sorted[0].name) : `Imatges (${sorted.length})`),
+    originalName: sorted.length === 1 ? sorted[0].name : `${sorted.length} imatges`,
     format: "images",
     sizeBytes: sorted.reduce((s, f) => s + f.size, 0),
   });
@@ -81,7 +81,7 @@ export async function importImageFiles(files: File[], title?: string): Promise<{
 
 /** Importa imágenes en el orden dado (proyectos .comicexam). Devuelve los ids de página en ese orden. */
 export async function importOrderedImages(title: string, files: { name: string; data: Blob }[]): Promise<{ comicId: string; pageIds: string[] }> {
-  const comic = await createComicRecord({ title, originalName: "proyecto.comicexam", format: "bundle", sizeBytes: files.reduce((s, f) => s + f.data.size, 0) });
+  const comic = await createComicRecord({ title, originalName: "projecte.comicexam", format: "bundle", sizeBytes: files.reduce((s, f) => s + f.data.size, 0) });
   const res = await run({ type: "images", comicId: comic.id, files });
   if (res.type === "error") throw new Error(res.message);
   return { comicId: comic.id, pageIds: res.pageIds };
@@ -94,7 +94,7 @@ export async function recoverStaleImports(): Promise<void> {
   for (const c of comics) {
     if (c.status !== "processing" || active.has(c.id)) continue;
     if (Date.now() - new Date(c.updatedAt).getTime() < 30_000) continue; // quizá la está importando otra pestaña
-    await db.put("comics", { ...c, status: "error", error: "La importación se interrumpió (¿se cerró la pestaña?). Vuelve a importar el archivo.", stage: "Error", updatedAt: nowIso() });
+    await db.put("comics", { ...c, status: "error", error: "La importació s'ha interromput (s'ha tancat la pestanya?). Torna a importar el fitxer.", stage: "Error", updatedAt: nowIso() });
     notifyChange("comics");
   }
 }

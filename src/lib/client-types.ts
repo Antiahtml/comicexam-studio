@@ -65,7 +65,7 @@ export function selectionToSource(s: SavedSelection): ImageSource {
     crop: s.rect,
     pageWidth: s.pageWidth,
     pageHeight: s.pageHeight,
-    label: `${s.comicTitle} · pág. ${s.pageIndex + 1}`,
+    label: `${s.comicTitle} · pàg. ${s.pageIndex + 1}`,
   };
 }
 
@@ -77,6 +77,6 @@ export function pageToSource(comic: { id: string; title: string }, page: PageInf
     crop,
     pageWidth: page.width,
     pageHeight: page.height,
-    label: `${comic.title} · pág. ${page.index + 1}`,
+    label: `${comic.title} · pàg. ${page.index + 1}`,
   };
 }

@@ -18,7 +18,7 @@ import { recoverStaleImports } from "@/lib/local/import-service";
 import { pageImageUrl } from "@/lib/images/urls";
 import type { ComicSummary } from "@/lib/client-types";
 
-const FORMAT_LABEL: Record<ComicSummary["format"], string> = { rar: "CBR", zip: "CBZ", images: "Imágenes", bundle: "Proyecto" };
+const FORMAT_LABEL: Record<ComicSummary["format"], string> = { rar: "CBR", zip: "CBZ", images: "Imatges", bundle: "Projecte" };
 
 export function useComics() {
   const [comics, setComics] = useState<ComicSummary[] | null>(null);
@@ -26,7 +26,7 @@ export function useComics() {
     try {
       setComics(await listComics());
     } catch (err) {
-      toast.error("No se ha podido cargar la biblioteca", { description: (err as Error).message });
+      toast.error("No s'ha pogut carregar la biblioteca", { description: (err as Error).message });
       setComics((c) => c ?? []);
     }
   }, []);
@@ -65,13 +65,15 @@ function StorageInfo({ refreshKey }: { refreshKey: number }) {
   if (!est) return null;
   return (
     <p className="text-xs text-muted-foreground">
-      Espacio usado en este navegador: <strong>{formatBytes(est.usage)}</strong>
+      Espai utilitzat en aquest navegador: <strong>{formatBytes(est.usage)}</strong>
       {est.quota > 0 && <> de {formatBytes(est.quota)} disponibles</>}
     </p>
   );
 }
 
 export function LibraryView() {
+  /** Menú de acciones abierto (también con clic derecho sobre la tarjeta). */
+  const [menuFor, setMenuFor] = useState<string | null>(null);
   const { comics, reload } = useComics();
   const { tasks, importFiles, dismiss } = useComicImport(() => void reload());
   const confirm = useConfirm();
@@ -81,31 +83,31 @@ export function LibraryView() {
   const remove = async (c: ComicSummary) => {
     const usedBy = await projectsUsingComic(c.id).catch(() => [] as { id: string; name: string }[]);
     const ok = await confirm({
-      title: `¿Eliminar «${c.title}»?`,
+      title: `Vols eliminar «${c.title}»?`,
       description:
         usedBy.length > 0 ? (
           <div className="space-y-2" data-testid="comic-usage-warning">
             <p className="font-medium text-destructive">
-              {usedBy.length === 1 ? "Lo usa 1 examen" : `Lo usan ${usedBy.length} exámenes`}: sus imágenes dejarán de verse en el papel.
+              {usedBy.length === 1 ? "L'usa 1 examen" : `L'usen ${usedBy.length} exàmens`}: les seves imatges deixaran de veure’s al paper.
             </p>
             <ul className="list-disc space-y-0.5 pl-5 text-foreground">
               {usedBy.slice(0, 6).map((p) => (
                 <li key={p.id}>{p.name}</li>
               ))}
-              {usedBy.length > 6 && <li>y {usedBy.length - 6} más…</li>}
+              {usedBy.length > 6 && <li>i {usedBy.length - 6} més…</li>}
             </ul>
-            <p>También se borrarán sus páginas y viñetas guardadas. No se puede deshacer.</p>
+            <p>També s’esborraran les seves pàgines i vinyetes desades. No es pot desfer.</p>
           </div>
         ) : (
-          "Se borrarán sus páginas y viñetas guardadas. Ningún examen lo usa. No se puede deshacer."
+          "S'esborraran les seves pàgines i vinyetes desades. Cap examen l'utilitza. No es pot desfer."
         ),
-      confirmLabel: usedBy.length > 0 ? "Eliminar igualmente" : "Eliminar",
+      confirmLabel: usedBy.length > 0 ? "Elimina igualment" : "Elimina",
       destructive: true,
     });
     if (!ok) return;
     try {
       await deleteComic(c.id, { force: usedBy.length > 0 });
-      toast.success("Cómic eliminado");
+      toast.success("Còmic eliminat");
       void reload();
     } catch (err) {
       toast.error((err as Error).message);
@@ -128,8 +130,8 @@ export function LibraryView() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Biblioteca de cómics</h1>
-          <p className="text-sm text-muted-foreground">Importa tus cómics, ábrelos en el visor y selecciona las viñetas para tus exámenes.</p>
+          <h1 className="text-display mb-2 text-4xl sm:text-5xl">Biblioteca de còmics</h1>
+          <p className="text-sm text-muted-foreground">Importa els teus còmics, obre’ls al visor i selecciona les vinyetes per als teus exàmens.</p>
           <StorageInfo refreshKey={comics?.length ?? 0} />
         </div>
       </div>
@@ -140,12 +142,12 @@ export function LibraryView() {
           <ImportTasks tasks={tasks} onDismiss={dismiss} />
           {tasks.length === 0 && (
             <div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
-              <p className="mb-2 font-medium text-foreground">Consejos</p>
+              <p className="mb-2 font-medium text-foreground">Consells</p>
               <ul className="list-disc space-y-1 pl-4">
-                <li>Los archivos se procesan en tu navegador: nunca se suben a Internet.</li>
-                <li>Se guardan solo en este navegador. Para llevarte un examen a otro equipo, expórtalo (.comicexam).</li>
-                <li>Se admiten CBR (RAR 4 y RAR 5) y CBZ (ZIP).</li>
-                <li>Las páginas se ordenan por nombre de forma natural (2 antes que 10).</li>
+                <li>Els fitxers es processen al teu navegador: mai es pugen a Internet.</li>
+                <li>Es desen només en aquest navegador. Per endur-te un examen a un altre equip, exporta’l (.comicexam).</li>
+                <li>S’admeten CBR (RAR 4 i RAR 5) i CBZ (ZIP).</li>
+                <li>Les pàgines s’ordenen pel nom de forma natural (2 abans que 10).</li>
               </ul>
             </div>
           )}
@@ -154,22 +156,30 @@ export function LibraryView() {
 
       {comics === null ? (
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Cargando biblioteca…
+          <Loader2 className="size-4 animate-spin" /> Carregant la biblioteca…
         </div>
       ) : comics.length === 0 ? (
         <EmptyState
           icon={<BookImage />}
-          title="Tu biblioteca está vacía"
-          description="Importa tu primer cómic en formato CBR o CBZ para empezar a seleccionar viñetas."
+          title="La teva biblioteca és buida"
+          description="Importa el teu primer còmic en format CBR o CBZ per començar a seleccionar vinyetes."
         />
       ) : (
         <ul className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
           {comics.map((c) => (
-            <li key={c.id} className="group relative" data-testid="comic-card">
+            <li
+              key={c.id}
+              className="group relative"
+              data-testid="comic-card"
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setMenuFor(c.id);
+              }}
+            >
               <Link
                 href={c.status === "ready" ? `/visor?id=${c.id}` : "#"}
                 aria-disabled={c.status !== "ready"}
-                className="block overflow-hidden rounded-xl border bg-card shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className="block overflow-hidden rounded-xl bg-card shadow-sm transition-[translate,scale,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lg active:duration-100 motion-safe:active:translate-y-0 motion-safe:active:scale-[0.98] active:shadow-sm"
               >
                 <div className="relative aspect-[2/3] bg-muted">
                   {c.coverPageId ? (
@@ -199,7 +209,7 @@ export function LibraryView() {
                     <p className="line-clamp-3 text-xs text-destructive">{c.error}</p>
                   ) : (
                     <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-                      <span>{c.pageCount} págs.</span>
+                      <span>{c.pageCount} pàg.</span>
                       {c.selectionCount > 0 && (
                         <span className="flex items-center gap-0.5">
                           <Scissors className="size-3" /> {c.selectionCount}
@@ -208,12 +218,12 @@ export function LibraryView() {
                       <span>{formatBytes(c.sizeBytes)}</span>
                     </p>
                   )}
-                  <p className="text-[11px] text-muted-foreground/80">{relativeTime(c.createdAt)}</p>
+                  <p className="text-2xs text-muted-foreground/80">{relativeTime(c.createdAt)}</p>
                 </div>
               </Link>
-              <DropdownMenu>
+              <DropdownMenu open={menuFor === c.id} onOpenChange={(o) => setMenuFor(o ? c.id : null)}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="iconSm" className="absolute top-2 right-2 opacity-0 shadow-sm group-hover:opacity-100 data-[state=open]:opacity-100" aria-label="Acciones">
+                  <Button variant="outline" size="iconSm" className="hover-reveal absolute top-2 right-2 shadow-sm" aria-label="Accions">
                     <MoreVertical />
                   </Button>
                 </DropdownMenuTrigger>
@@ -221,7 +231,7 @@ export function LibraryView() {
                   {c.status === "ready" && (
                     <DropdownMenuItem asChild>
                       <Link href={`/visor?id=${c.id}`}>
-                        <BookImage /> Abrir en el visor
+                        <BookImage /> Obre al visor
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -231,11 +241,11 @@ export function LibraryView() {
                       setNewTitle(c.title);
                     }}
                   >
-                    <Pencil /> Cambiar nombre
+                    <Pencil /> Canvia el nom
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onSelect={() => remove(c)} disabled={c.status === "processing"}>
-                    <Trash2 /> Eliminar
+                    <Trash2 /> Elimina
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -247,14 +257,14 @@ export function LibraryView() {
       <Dialog open={!!renaming} onOpenChange={(o) => !o && setRenaming(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cambiar nombre del cómic</DialogTitle>
+            <DialogTitle>Canvia el nom del còmic</DialogTitle>
           </DialogHeader>
           <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && rename()} autoFocus />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenaming(null)}>
-              Cancelar
+              Cancel·la
             </Button>
-            <Button onClick={rename}>Guardar</Button>
+            <Button onClick={rename}>Desa</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

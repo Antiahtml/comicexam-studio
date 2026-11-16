@@ -396,16 +396,16 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
     const clipped = overflowing.has(el.id);
     const editing = editingId === el.id && el.type === "text";
     const outline = selected
-      ? `${2 / zoom}px solid #4f46e5`
+      ? `${2 / zoom}px solid var(--selection)`
       : outside
         ? `${1.5 / zoom}px dashed #dc2626`
         : overlap || clipped
           ? `${1.5 / zoom}px dashed #f59e0b`
           : undefined;
     const problems = [
-      outside === "outsidePage" ? "Se sale de la hoja: no se imprimirá completo." : outside === "outsideMargins" ? "Se sale de los márgenes de impresión." : null,
-      overlap ? "Se superpone con otro elemento." : null,
-      clipped ? "El contenido no cabe: amplía la caja o reduce el texto." : null,
+      outside === "outsidePage" ? "Surt del full: no s'imprimirà complet." : outside === "outsideMargins" ? "Surt dels marges d'impressió." : null,
+      overlap ? "Se superposa amb un altre element." : null,
+      clipped ? "El contingut no hi cap: amplia la caixa o redueix el text." : null,
     ].filter(Boolean) as string[];
     return (
       <div
@@ -419,7 +419,7 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
           {editing ? <InlineTextEditor el={el} /> : content}
         </div>
         {!selected && !outline && (
-          <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover/el:opacity-100" style={{ outline: `${1 / zoom}px solid #818cf8` }} />
+          <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover/el:opacity-100" style={{ outline: `${1 / zoom}px solid var(--selection)` }} />
         )}
         {(problems.length > 0 || el.locked) && (
           <div
@@ -428,7 +428,7 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
             data-no-drag
           >
             {el.locked && (
-              <span className="flex size-5 items-center justify-center rounded-full bg-slate-700 text-white shadow" title="Elemento bloqueado">
+              <span className="flex size-5 items-center justify-center rounded-full bg-slate-700 text-white shadow" title="Element bloquejat">
                 <Lock className="size-3" />
               </span>
             )}
@@ -449,7 +449,7 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
               <span
                 key={h}
                 data-handle={h}
-                className="absolute rounded-[2px] border border-primary bg-white shadow-sm"
+                className="absolute rounded-[2px] border border-selection bg-white shadow-sm"
                 style={{
                   width: hs,
                   height: hs,
@@ -463,8 +463,8 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
             {canRotate(el) && (
               <span
                 data-handle="rotate"
-                title="Girar (Mayús: de 15 en 15°)"
-                className="absolute rounded-full border border-primary bg-white shadow-sm"
+                title="Gira (Maj: de 15 en 15°)"
+                className="absolute rounded-full border border-selection bg-white shadow-sm"
                 style={{ width: hs * 1.3, height: hs * 1.3, borderWidth: 1.5 / zoom, left: `calc(50% - ${(hs * 1.3) / 2}px)`, top: -hs * 3.2, cursor: "grab" }}
               />
             )}
@@ -514,8 +514,8 @@ export const EditorPage = memo(function EditorPage({ page, index, ctx }: { page:
           )}
           {marquee && (
             <div
-              className="pointer-events-none absolute bg-primary/10"
-              style={{ left: `${marquee.x}mm`, top: `${marquee.y}mm`, width: `${marquee.w}mm`, height: `${marquee.h}mm`, outline: `${1 / zoom}px solid #4f46e5` }}
+              className="pointer-events-none absolute bg-selection/10"
+              style={{ left: `${marquee.x}mm`, top: `${marquee.y}mm`, width: `${marquee.w}mm`, height: `${marquee.h}mm`, outline: `${1 / zoom}px solid var(--selection)` }}
             />
           )}
         </PageSurface>

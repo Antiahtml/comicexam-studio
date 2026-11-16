@@ -20,7 +20,7 @@ export function AppBoot({ children }: { children: React.ReactNode }) {
       if (!("serviceWorker" in navigator) || !("indexedDB" in window)) {
         setState({
           kind: "error",
-          message: "Este navegador no permite guardar datos en el equipo (o estás en una ventana privada). Usa Chrome, Edge, Firefox o Safari actualizados en una ventana normal.",
+          message: "Aquest navegador no permet desar dades a l'equip (o ets en una finestra privada). Utilitza Chrome, Edge, Firefox o Safari actualitzats en una finestra normal.",
         });
         return;
       }
@@ -47,7 +47,7 @@ export function AppBoot({ children }: { children: React.ReactNode }) {
         if (!cancelled)
           setState({
             kind: "error",
-            message: "No se ha podido preparar la aplicación en este navegador. Recarga la página; si sigue fallando, prueba con Chrome o Edge.",
+            message: "No s'ha pogut preparar l'aplicació en aquest navegador. Recarrega la pàgina; si continua fallant, prova-ho amb Chrome o Edge.",
           });
       }
     })();
@@ -62,12 +62,12 @@ export function AppBoot({ children }: { children: React.ReactNode }) {
       <LogoMark className="size-12" />
       {state.kind === "loading" ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Preparando ComicExam Studio…
+          <Loader2 className="size-4 animate-spin" /> Preparant ComicExam Studio…
         </p>
       ) : (
         <div className="max-w-md space-y-2">
           <p className="flex items-center justify-center gap-2 font-semibold">
-            <TriangleAlert className="size-5 text-amber-600" /> No se puede abrir la aplicación
+            <TriangleAlert className="size-5 text-amber-600" /> No es pot obrir l’aplicació
           </p>
           <p className="text-sm text-muted-foreground">{state.message}</p>
         </div>

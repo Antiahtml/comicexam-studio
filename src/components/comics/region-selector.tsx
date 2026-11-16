@@ -143,15 +143,15 @@ export function RegionSelector({
             data-region={r.key}
             className={cn(
               "absolute border-2 transition-shadow",
-              active ? "z-20 cursor-move border-primary shadow-[0_0_0_9999px_rgba(15,23,42,0.35)]" : "z-10 cursor-pointer hover:bg-primary/10",
+              active ? "z-20 cursor-move border-selection shadow-[0_0_0_9999px_rgba(15,23,42,0.35)]" : "z-10 cursor-pointer hover:bg-selection/10",
               r.saved ? (active ? "" : "border-emerald-500") : active ? "" : "border-dashed border-amber-500",
             )}
             style={{ left: `${r.rect.x * 100}%`, top: `${r.rect.y * 100}%`, width: `${r.rect.w * 100}%`, height: `${r.rect.h * 100}%` }}
           >
             <span
               className={cn(
-                "pointer-events-none absolute -top-px -left-px rounded-br-md px-1.5 py-0.5 text-[11px] font-bold text-white",
-                active ? "bg-primary" : r.saved ? "bg-emerald-500" : "bg-amber-500",
+                "pointer-events-none absolute -top-px -left-px rounded-br-md px-1.5 py-0.5 text-2xs font-bold text-white",
+                active ? "bg-selection" : r.saved ? "bg-emerald-500" : "bg-amber-500",
               )}
             >
               {i + 1}
@@ -161,7 +161,7 @@ export function RegionSelector({
                 <span
                   key={h}
                   data-handle={h}
-                  className={cn("absolute z-30 size-3 rounded-sm border-2 border-primary bg-white shadow", HANDLE_POS[h])}
+                  className={cn("absolute z-30 size-3 rounded-sm border-2 border-selection bg-white shadow", HANDLE_POS[h])}
                 />
               ))}
           </div>
@@ -169,7 +169,7 @@ export function RegionSelector({
       })}
       {drawing && (
         <div
-          className="absolute z-30 border-2 border-dashed border-primary bg-primary/15"
+          className="absolute z-30 border-2 border-dashed border-selection bg-selection/15"
           style={{ left: `${drawing.x * 100}%`, top: `${drawing.y * 100}%`, width: `${drawing.w * 100}%`, height: `${drawing.h * 100}%` }}
         />
       )}

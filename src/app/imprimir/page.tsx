@@ -24,7 +24,7 @@ function Imprimir() {
       alive = false;
     };
   }, [id]);
-  if (!id || doc === null) return <p style={{ padding: 24, fontFamily: "system-ui" }}>Examen no encontrado en este navegador.</p>;
+  if (!id || doc === null) return <p style={{ padding: 24, fontFamily: "system-ui" }}>Examen no trobat en aquest navegador.</p>;
   if (!doc) return null;
   return <PrintDocument doc={doc} />;
 }

@@ -19,7 +19,7 @@ function Preview() {
       alive = false;
     };
   }, [id]);
-  if (!id || name === null) return <NotFoundView what="El examen" />;
+  if (!id || name === null) return <NotFoundView what="L'examen" />;
   if (name === undefined) return null;
   return <PrintPreview projectId={id} name={name} />;
 }

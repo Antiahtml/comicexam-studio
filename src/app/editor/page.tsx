@@ -25,11 +25,11 @@ function Editor() {
       alive = false;
     };
   }, [id]);
-  if (!id || project === null) return <NotFoundView what="El examen" />;
+  if (!id || project === null) return <NotFoundView what="L'examen" />;
   if (!project)
     return (
       <div className="flex h-screen items-center justify-center gap-2 text-muted-foreground">
-        <Loader2 className="size-5 animate-spin" /> Abriendo examen…
+        <Loader2 className="size-5 animate-spin" /> Obrint l’examen…
       </div>
     );
   return <EditorShell project={project} />;

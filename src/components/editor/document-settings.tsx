@@ -23,34 +23,34 @@ export function DocumentSettings() {
 
   return (
     <div data-testid="document-settings">
-      <div className="sticky top-0 z-10 border-b bg-card/95 px-4 py-3 backdrop-blur">
+      <div className="material sticky top-0 z-10 px-4 py-3 shadow-[0_1px_0_var(--material-edge)]">
         <h2 className="text-sm font-semibold">Documento</h2>
       </div>
-      <Section title="Datos del examen">
-        <Field label="Título">
+      <Section title="Dades de l'examen">
+        <Field label="Títol">
           <TextField value={m.title} onChange={(v) => st.updateMeta({ title: v }, "title")} testId="meta-title" />
         </Field>
-        <Field label="Asignatura">
-          <TextField value={m.subject} onChange={(v) => st.updateMeta({ subject: v }, "subject")} placeholder="Lengua castellana" />
+        <Field label="Assignatura">
+          <TextField value={m.subject} onChange={(v) => st.updateMeta({ subject: v }, "subject")} placeholder="Llengua catalana" />
         </Field>
         <div className="grid grid-cols-2 gap-2">
-          <Field label="Curso o grupo">
-            <TextField value={m.course} onChange={(v) => st.updateMeta({ course: v }, "course")} placeholder="2.º ESO B" />
+          <Field label="Curs o grup">
+            <TextField value={m.course} onChange={(v) => st.updateMeta({ course: v }, "course")} placeholder="2n d'ESO B" />
           </Field>
-          <Field label="Fecha">
+          <Field label="Data">
             <TextField value={m.date} onChange={(v) => st.updateMeta({ date: v }, "date")} />
           </Field>
         </div>
-        <NumberField label="Puntuación total" value={m.totalScore ?? 0} min={0} step={0.5} onChange={(v) => st.updateMeta({ totalScore: v }, "score")} />
-        <p className="text-[11px] text-muted-foreground">
-          Suma de las preguntas: <strong>{sum}</strong>{" "}
+        <NumberField label="Puntuació total" value={m.totalScore ?? 0} min={0} step={0.5} onChange={(v) => st.updateMeta({ totalScore: v }, "score")} />
+        <p className="text-2xs text-muted-foreground">
+          Suma de les preguntes: <strong>{sum}</strong>{" "}
           {sum > 0 && sum !== m.totalScore && (
             <button className="text-primary hover:underline" onClick={() => st.updateMeta({ totalScore: sum })}>
-              Usar esta suma
+              Utilitza aquesta suma
             </button>
           )}
         </p>
-        <Field label="Instrucciones generales">
+        <Field label="Instruccions generals">
           <TextField multiline value={m.instructions} onChange={(v) => st.updateMeta({ instructions: v }, "instructions")} />
         </Field>
         <Button
@@ -58,24 +58,24 @@ export function DocumentSettings() {
           size="sm"
           className="w-full"
           onClick={() => st.addElement(createExamHeader())}
-          title="Bloque con título, nombre del alumno, nota e instrucciones"
+          title="Bloc amb títol, nom de l'alumne, nota i instruccions"
         >
-          <PanelTop /> Insertar cabecera del examen
+          <PanelTop /> Insereix la capçalera de l’examen
         </Button>
       </Section>
 
-      <Section title="Página">
+      <Section title="Pàgina">
         <Segmented
           value={s.orientation}
           onChange={(v) => st.updateSettings({ orientation: v })}
           options={[
             { value: "portrait", label: <><RectangleVertical /> A4 vertical</> },
-            { value: "landscape", label: <><RectangleHorizontal /> A4 horizontal</> },
+            { value: "landscape", label: <><RectangleHorizontal /> A4 horitzontal</> },
           ]}
         />
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Márgenes (mm)</span>
+            <span className="text-2xs font-medium text-muted-foreground">Marges (mm)</span>
             <div className="flex gap-1">
               {[
                 ["Estrechos", 10],
@@ -84,7 +84,7 @@ export function DocumentSettings() {
               ].map(([label, v]) => (
                 <button
                   key={label}
-                  className="rounded px-1.5 py-0.5 text-[10px] text-primary hover:bg-secondary"
+                  className="rounded px-1.5 py-0.5 text-2xs text-primary hover:bg-secondary"
                   onClick={() => st.updateSettings({ margins: { top: v as number, right: v as number, bottom: v as number, left: v as number } })}
                 >
                   {label}
@@ -93,13 +93,13 @@ export function DocumentSettings() {
             </div>
           </div>
           <div className="grid grid-cols-4 gap-1.5">
-            <NumberField label="Arriba" value={s.margins.top} min={0} max={80} onChange={(v) => setMargin("top", v)} />
-            <NumberField label="Abajo" value={s.margins.bottom} min={0} max={80} onChange={(v) => setMargin("bottom", v)} />
-            <NumberField label="Izq." value={s.margins.left} min={0} max={80} onChange={(v) => setMargin("left", v)} />
-            <NumberField label="Der." value={s.margins.right} min={0} max={80} onChange={(v) => setMargin("right", v)} />
+            <NumberField label="Dalt" value={s.margins.top} min={0} max={80} onChange={(v) => setMargin("top", v)} />
+            <NumberField label="Baix" value={s.margins.bottom} min={0} max={80} onChange={(v) => setMargin("bottom", v)} />
+            <NumberField label="Esq." value={s.margins.left} min={0} max={80} onChange={(v) => setMargin("left", v)} />
+            <NumberField label="Dre." value={s.margins.right} min={0} max={80} onChange={(v) => setMargin("right", v)} />
           </div>
         </div>
-        <Field label="Fuente principal">
+        <Field label="Tipus de lletra principal">
           <select
             className="h-8 w-full rounded-md border border-input bg-card px-2 text-sm"
             value={s.fontFamily}
@@ -112,14 +112,14 @@ export function DocumentSettings() {
             ))}
           </select>
         </Field>
-        <SwitchRow label="Mostrar puntuación de cada pregunta" checked={s.showPoints} onChange={(v) => st.updateSettings({ showPoints: v })} />
+        <SwitchRow label="Mostra la puntuació de cada pregunta" checked={s.showPoints} onChange={(v) => st.updateSettings({ showPoints: v })} />
       </Section>
 
-      <Section title="Numeración de páginas">
-        <SwitchRow label="Numerar páginas" checked={s.showPageNumbers} onChange={(v) => st.updateSettings({ showPageNumbers: v })} />
+      <Section title="Numeració de pàgines">
+        <SwitchRow label="Numera les pàgines" checked={s.showPageNumbers} onChange={(v) => st.updateSettings({ showPageNumbers: v })} />
         {s.showPageNumbers && (
           <div className="grid grid-cols-2 gap-2">
-            <Field label="Formato">
+            <Field label="Format">
               <select
                 className="h-8 w-full rounded-md border border-input bg-card px-2 text-sm"
                 value={s.pageNumberFormat}
@@ -127,10 +127,10 @@ export function DocumentSettings() {
               >
                 <option value="n">1</option>
                 <option value="n-total">1 / 3</option>
-                <option value="pagina-n-de-total">Página 1 de 3</option>
+                <option value="pagina-n-de-total">Pàgina 1 de 3</option>
               </select>
             </Field>
-            <Field label="Posición">
+            <Field label="Posició">
               <select
                 className="h-8 w-full rounded-md border border-input bg-card px-2 text-sm"
                 value={s.pageNumberPosition}
@@ -146,9 +146,9 @@ export function DocumentSettings() {
       </Section>
 
       {(["header", "footer"] as const).map((which) => (
-        <Section key={which} title={which === "header" ? "Encabezado" : "Pie de página"}>
+        <Section key={which} title={which === "header" ? "Capçalera" : "Peu de pàgina"}>
           <SwitchRow
-            label={which === "header" ? "Mostrar encabezado" : "Mostrar pie de página"}
+            label={which === "header" ? "Mostra la capçalera" : "Mostra el peu de pàgina"}
             checked={s[which].enabled}
             onChange={(v) => setHF(which, { enabled: v }, "enabled")}
           />
@@ -156,13 +156,13 @@ export function DocumentSettings() {
             <>
               <div className="grid grid-cols-3 gap-1.5">
                 {(["left", "center", "right"] as const).map((pos) => (
-                  <Field key={pos} label={pos === "left" ? "Izquierda" : pos === "center" ? "Centro" : "Derecha"}>
+                  <Field key={pos} label={pos === "left" ? "Esquerra" : pos === "center" ? "Centre" : "Dreta"}>
                     <TextField value={s[which][pos]} onChange={(v) => setHF(which, { [pos]: v }, pos)} />
                   </Field>
                 ))}
               </div>
-              <p className="text-[11px] leading-snug text-muted-foreground">
-                Variables: {"{titulo}"} {"{asignatura}"} {"{curso}"} {"{fecha}"} {"{pagina}"} {"{total}"}
+              <p className="text-2xs leading-snug text-muted-foreground">
+                Variables: {"{titol}"} {"{assignatura}"} {"{curs}"} {"{data}"} {"{pagina}"} {"{total}"}
               </p>
             </>
           )}

@@ -51,23 +51,23 @@ async function finish(comicId: string, pageIds: string[]) {
 
 async function fail(comicId: string, err: unknown) {
   const message =
-    err instanceof ArchiveError || err instanceof ImageError ? err.message : "Se ha producido un error inesperado al importar el archivo.";
-  if (!(err instanceof ArchiveError) && !(err instanceof ImageError)) console.error("[importación]", err);
+    err instanceof ArchiveError || err instanceof ImageError ? err.message : "S'ha produït un error inesperat en importar el fitxer.";
+  if (!(err instanceof ArchiveError) && !(err instanceof ImageError)) console.error("[importació]", err);
   await deleteComicContent(comicId).catch(() => undefined);
   await updateComic(comicId, { status: "error", error: message, stage: "Error", progress: 0, pageCount: 0, coverPageId: null }).catch(() => undefined);
   post({ type: "error", comicId, message });
 }
 
 async function importArchive(comicId: string, file: File, wasmUrl: string) {
-  if (file.size > LIMITS.maxUploadBytes) throw new ArchiveError("El archivo supera el tamaño máximo permitido (1 GB).");
+  if (file.size > LIMITS.maxUploadBytes) throw new ArchiveError("El fitxer supera la mida màxima permesa (1 GB).");
   const progress = async (p: number, stage: string) => {
     post({ type: "progress", comicId, progress: p, stage });
     await updateComic(comicId, { progress: p, stage });
   };
-  await progress(2, "Leyendo el archivo…");
+  await progress(2, "Llegint el fitxer…");
   const data = await file.arrayBuffer();
   const kind = detectArchive(new Uint8Array(data, 0, Math.min(16, data.byteLength)));
-  if (!kind) throw new ArchiveError("El archivo no es un CBR/CBZ válido (no se reconoce como RAR ni ZIP).");
+  if (!kind) throw new ArchiveError("El fitxer no és un CBR/CBZ vàlid (no es reconeix com a RAR ni ZIP).");
   await updateComic(comicId, { format: kind });
   const wasm = kind === "rar" ? await (await fetch(wasmUrl)).arrayBuffer() : undefined;
   let plan: PlannedEntry[] = [];
@@ -80,20 +80,20 @@ async function importArchive(comicId: string, file: File, wasmUrl: string) {
     {
       onPlan: async (p) => {
         plan = p;
-        await progress(5, `Extrayendo ${p.length} páginas…`);
+        await progress(5, `Extraient ${p.length} pàgines…`);
       },
       onEntry: async (entry, bytes) => {
         try {
           await storePage(comicId, entry.index, entry.name, bytes);
         } catch (err) {
-          const msg = err instanceof ImageError ? err.message : "error al procesar la imagen";
-          throw new ArchiveError(`Página "${displayName(entry.name)}": ${msg}`);
+          const msg = err instanceof ImageError ? err.message : "error en processar la imatge";
+          throw new ArchiveError(`Pàgina "${displayName(entry.name)}": ${msg}`);
         }
         done++;
         const now = Date.now();
         if (now - last > 200 || done === plan.length) {
           last = now;
-          await progress(Math.min(99, 5 + Math.round((done / Math.max(1, plan.length)) * 94)), `Procesando página ${done} de ${plan.length}…`);
+          await progress(Math.min(99, 5 + Math.round((done / Math.max(1, plan.length)) * 94)), `Processant la pàgina ${done} de ${plan.length}…`);
         }
       },
     },
@@ -106,10 +106,10 @@ async function importImages(comicId: string, files: { name: string; data: Blob }
   // Se respeta el orden recibido (en los proyectos importados importa); las sueltas llegan ya ordenadas.
   const ids: string[] = [];
   for (let i = 0; i < files.length; i++) {
-    if (files[i].data.size > LIMITS.maxImageUploadBytes) throw new ImageError(`La imagen "${files[i].name}" es demasiado grande.`);
+    if (files[i].data.size > LIMITS.maxImageUploadBytes) throw new ImageError(`La imatge "${files[i].name}" és massa gran.`);
     const bytes = new Uint8Array(await files[i].data.arrayBuffer());
     ids.push(await storePage(comicId, i, displayName(files[i].name), bytes));
-    post({ type: "progress", comicId, progress: Math.round(((i + 1) / files.length) * 99), stage: `Procesando imagen ${i + 1} de ${files.length}…` });
+    post({ type: "progress", comicId, progress: Math.round(((i + 1) / files.length) * 99), stage: `Processant la imatge ${i + 1} de ${files.length}…` });
   }
   await finish(comicId, ids);
 }

@@ -64,22 +64,22 @@ describe("importación de CBR (RAR5) y CBZ en el navegador", () => {
   });
 
   it("rechaza rutas peligrosas (path traversal)", async () => {
-    await expect(collect(createRar5Store([{ name: "../../evil.png", data: await png(1) }]), "rar")).rejects.toThrow(/ruta no válida/);
+    await expect(collect(createRar5Store([{ name: "../../evil.png", data: await png(1) }]), "rar")).rejects.toThrow(/ruta no vàlida/);
     await expect(collect(zipSync({ "ok/../../../evil.png": new Uint8Array(await png(1)) }), "zip")).rejects.toThrow(ArchiveError);
   });
 
   it("rechaza bombas de descompresión", async () => {
     const bomb = zipSync({ "p1.jpg": new Uint8Array(20 * 1048576) }, { level: 9 }); // 20 MB de ceros
-    await expect(collect(bomb, "zip", { ...limits, maxEntryBytes: 100 * 1048576 })).rejects.toThrow(/compresión anómala/);
-    await expect(collect(bomb, "zip")).rejects.toThrow(/máximo permitido/);
+    await expect(collect(bomb, "zip", { ...limits, maxEntryBytes: 100 * 1048576 })).rejects.toThrow(/compressió anòmala/);
+    await expect(collect(bomb, "zip")).rejects.toThrow(/màxim permès/);
   });
 
   it("aplica los límites de número de entradas y tamaño", () => {
     const raw = Array.from({ length: 5 }, (_, i) => ({ name: `${i}.jpg`, size: 10, encrypted: false, directory: false }));
-    expect(() => planEntries(raw, 100, { ...limits, maxEntries: 3 })).toThrow(/demasiadas entradas/);
-    expect(() => planEntries([{ ...raw[0], size: 11 * 1048576 }], 11 * 1048576, limits)).toThrow(/máximo permitido/);
-    expect(() => planEntries([{ ...raw[0], encrypted: true }], 100, limits)).toThrow(/contraseña/);
-    expect(() => planEntries([{ name: "a.txt", size: 1, encrypted: false, directory: false }], 100, limits)).toThrow(/No se han encontrado imágenes/);
+    expect(() => planEntries(raw, 100, { ...limits, maxEntries: 3 })).toThrow(/massa entrades/);
+    expect(() => planEntries([{ ...raw[0], size: 11 * 1048576 }], 11 * 1048576, limits)).toThrow(/màxim permès/);
+    expect(() => planEntries([{ ...raw[0], encrypted: true }], 100, limits)).toThrow(/contrasenya/);
+    expect(() => planEntries([{ name: "a.txt", size: 1, encrypted: false, directory: false }], 100, limits)).toThrow(/No s'han trobat imatges/);
   });
 
   it("detecta archivos RAR dañados y ZIP no válidos", async () => {
@@ -95,7 +95,7 @@ describe("títulos legibles", () => {
     ["Mi.comic.favorito.-.Ana.Autora.[GrupoX][ES].cbr", "Mi comic favorito - Ana Autora"],
     ["Las_aventuras_de_Lia_01.cbz", "Las aventuras de Lia 01"],
     ["Astérix y Obélix (1959).cbr", "Astérix y Obélix (1959)"],
-    ["[Grupo] .cbr", "Cómic sin título"],
+    ["[Grupo] .cbr", "Còmic sense títol"],
   ])("%s → %s", (input, expected) => {
     expect(titleFromFileName(input)).toBe(expected);
   });

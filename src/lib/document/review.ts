@@ -38,21 +38,21 @@ export function elementLabel(el: ExamElement, numbers: Map<string, string>): str
     case "question":
       return `la pregunta ${numbers.get(el.id) ?? ""}`.trim();
     case "image":
-      return `la imagen «${el.src.label}»`;
+      return `la imatge «${el.src.label}»`;
     case "text": {
       const first = el.text.split("\n")[0].trim();
-      return first ? `el texto «${first.length > 30 ? `${first.slice(0, 30)}…` : first}»` : "un texto vacío";
+      return first ? `el text «${first.length > 30 ? `${first.slice(0, 30)}…` : first}»` : "un text buit";
     }
     case "lines":
-      return "las líneas de respuesta";
+      return "les línies de resposta";
     case "box":
-      return el.label ? `el cuadro «${el.label}»` : "un cuadro de respuesta";
+      return el.label ? `el quadre «${el.label}»` : "un quadre de resposta";
     case "table":
-      return "una tabla";
+      return "una taula";
     case "shape":
       return el.shape === "divider" ? `el separador «${el.title}»` : "una forma";
     case "examHeader":
-      return "la cabecera del examen";
+      return "la capçalera de l'examen";
   }
 }
 
@@ -70,7 +70,7 @@ export function reviewDocument(doc: ExamDocument): ReviewIssue[] {
   const issues: ReviewIssue[] = [];
   const numbers = questionNumbers(doc);
   const multiplePages = doc.pages.length > 1;
-  const where = (i: number) => (multiplePages ? ` (hoja ${i + 1})` : "");
+  const where = (i: number) => (multiplePages ? ` (full ${i + 1})` : "");
 
   doc.pages.forEach((page, pageIndex) => {
     if (page.elements.length === 0 && multiplePages) {
@@ -79,7 +79,7 @@ export function reviewDocument(doc: ExamDocument): ReviewIssue[] {
         kind: "emptyPage",
         severity: "warning",
         pageIndex,
-        message: `La hoja ${pageIndex + 1} está vacía y se imprimirá en blanco.`,
+        message: `El full ${pageIndex + 1} és buit i s'imprimirà en blanc.`,
       });
     }
     for (const el of page.elements) {
@@ -92,7 +92,7 @@ export function reviewDocument(doc: ExamDocument): ReviewIssue[] {
           severity: "error",
           pageIndex,
           elementId: el.id,
-          message: `${capital(label)} se sale de la hoja${where(pageIndex)}: una parte no se imprimirá.`,
+          message: `${capital(label)} surt del full${where(pageIndex)}: una part no s'imprimirà.`,
         });
       } else if (status === "outsideMargins") {
         issues.push({
@@ -101,7 +101,7 @@ export function reviewDocument(doc: ExamDocument): ReviewIssue[] {
           severity: "warning",
           pageIndex,
           elementId: el.id,
-          message: `${capital(label)} invade los márgenes${where(pageIndex)}; algunas impresoras lo cortan.`,
+          message: `${capital(label)} envaeix els marges${where(pageIndex)}; algunes impressores ho tallen.`,
         });
       }
       if (el.type === "image") {
@@ -113,7 +113,7 @@ export function reviewDocument(doc: ExamDocument): ReviewIssue[] {
             severity: "warning",
             pageIndex,
             elementId: el.id,
-            message: `${capital(label)} tiene poca resolución para su tamaño (${dpi} ppp): puede verse borrosa. Redúcela o usa un recorte más grande.`,
+            message: `${capital(label)} té poca resolució per a la seva mida (${dpi} ppp): es pot veure borrosa. Redueix-ne la mida o utilitza una retallada més gran.`,
           });
         }
       }
@@ -124,7 +124,7 @@ export function reviewDocument(doc: ExamDocument): ReviewIssue[] {
           severity: "error",
           pageIndex,
           elementId: el.id,
-          message: `${capital(label)} es «sobre imagen», pero no tiene ninguna viñeta asignada.`,
+          message: `${capital(label)} és «sobre imatge», però no té cap vinyeta assignada.`,
         });
       }
     }
@@ -139,7 +139,7 @@ export function reviewDocument(doc: ExamDocument): ReviewIssue[] {
             severity: "warning",
             pageIndex,
             elementId: els[j].id,
-            message: `${capital(elementLabel(els[i], numbers))} y ${elementLabel(els[j], numbers)} se superponen${where(pageIndex)}.`,
+            message: `${capital(elementLabel(els[i], numbers))} i ${elementLabel(els[j], numbers)} se superposen${where(pageIndex)}.`,
           });
         }
       }
@@ -151,7 +151,7 @@ export function reviewDocument(doc: ExamDocument): ReviewIssue[] {
       key: "total",
       kind: "totalMismatch",
       severity: "warning",
-      message: `La nota total de la cabecera es ${fmt(doc.meta.totalScore)}, pero las preguntas suman ${fmt(sum)} puntos.`,
+      message: `La nota total de la capçalera és ${fmt(doc.meta.totalScore)}, però les preguntes sumen ${fmt(sum)} punts.`,
     });
   }
   return sortIssues(issues);
@@ -164,10 +164,10 @@ export function domIssue(doc: ExamDocument, kind: "clipped" | "missingImage", el
     const el = doc.pages[pageIndex].elements.find((e) => e.id === elementId);
     if (!el) continue;
     const label = capital(elementLabel(el, numbers));
-    const hoja = doc.pages.length > 1 ? ` (hoja ${pageIndex + 1})` : "";
+    const hoja = doc.pages.length > 1 ? ` (full ${pageIndex + 1})` : "";
     return kind === "clipped"
-      ? { key: `clip:${el.id}`, kind, severity: "error", pageIndex, elementId: el.id, message: `${label} no cabe en su caja${hoja}: el final se imprimiría cortado.` }
-      : { key: `missing:${el.id}`, kind, severity: "error", pageIndex, elementId: el.id, message: `${label} no está disponible${hoja}: se eliminó el cómic de origen.` };
+      ? { key: `clip:${el.id}`, kind, severity: "error", pageIndex, elementId: el.id, message: `${label} no hi cap a la seva caixa${hoja}: el final s'imprimiria tallat.` }
+      : { key: `missing:${el.id}`, kind, severity: "error", pageIndex, elementId: el.id, message: `${label} no està disponible${hoja}: s'ha eliminat el còmic d'origen.` };
   }
   return null;
 }

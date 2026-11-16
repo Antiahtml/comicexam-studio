@@ -25,7 +25,7 @@ function layout(page: number, W: number, H: number): Panel[] {
   return panels;
 }
 
-export function comicPageSvg(page: number, total: number, W = 1000, H = 1500, title = "Las aventuras de Lía"): string {
+export function comicPageSvg(page: number, total: number, W = 1000, H = 1500, title = "Les aventures de la Lia"): string {
   const panels = layout(page, W, H);
   const parts: string[] = [`<rect width="${W}" height="${H}" fill="#ffffff"/>`];
   panels.forEach((p, i) => {
@@ -50,7 +50,7 @@ export function comicPageSvg(page: number, total: number, W = 1000, H = 1500, ti
     parts.push(`<path d="M ${bx + 60} ${by + 60} L ${fx - 4} ${head - r - 8} L ${bx + 100} ${by + 60} Z" fill="#fff" stroke="#111" stroke-width="4" stroke-linejoin="round"/>`);
     parts.push(`<rect x="${bx}" y="${by}" width="${bw}" height="72" rx="32" fill="#fff" stroke="#111" stroke-width="4"/>`);
     parts.push(
-      `<text x="${bx + bw / 2}" y="${by + 47}" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="middle" fill="#111">Pág. ${page} · V${i + 1}</text>`,
+      `<text x="${bx + bw / 2}" y="${by + 47}" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="middle" fill="#111">Pàg. ${page} · V${i + 1}</text>`,
     );
     parts.push(`<circle cx="${fx}" cy="${head}" r="${r}" fill="#fff" stroke="#111" stroke-width="5"/>`);
     parts.push(`<line x1="${fx}" y1="${head + r}" x2="${fx}" y2="${hip}" stroke="#111" stroke-width="6"/>`);
@@ -59,7 +59,7 @@ export function comicPageSvg(page: number, total: number, W = 1000, H = 1500, ti
     parts.push(`<line x1="${fx - r * 1.3}" y1="${head + r * 2.2}" x2="${fx + r * 1.3}" y2="${head + r * 2.2 - (i % 2) * r}" stroke="#111" stroke-width="6"/>`);
   });
   if (page === 1) {
-    parts.push(`<rect x="60" y="${H / 2 - 70}" width="${W - 120}" height="140" fill="#4f46e5" stroke="#111" stroke-width="7"/>`);
+    parts.push(`<rect x="60" y="${H / 2 - 70}" width="${W - 120}" height="140" fill="#111827" stroke="#111" stroke-width="7"/>`);
     parts.push(`<text x="${W / 2}" y="${H / 2 + 22}" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="900" text-anchor="middle" fill="#fff">${title}</text>`);
   }
   parts.push(`<text x="${W - 40}" y="${H - 12}" font-family="Arial" font-size="22" text-anchor="end" fill="#555">${page} / ${total}</text>`);
